@@ -26,14 +26,20 @@ def get_album_from_spotify(logger, artist_name, track_name):
         raise SpotifyException()
 
     tracks = data['tracks']['items']
-    filtered_tracks = filter(lambda track: filter_tracks(track, track_name), tracks)
+    filtered_tracks = list(filter(lambda track: filter_tracks(track, track_name, artist_name), tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
     if is_test:
         for track in sorted_tracks:
-            del track["album"]["available_markets"], track["album"]["artists"], track["album"]["external_urls"], \
+            del track["album"]["available_markets"], track["album"]["external_urls"], \
                 track["available_markets"], track["artists"], track["disc_number"], track["external_ids"], \
                 track["external_urls"], track["id"], track["uri"]
-        logger.test("Found items: ", items=json.dumps(sorted_tracks), total=len(sorted_tracks))
+        logger.test("Found items: ", items=json.dumps(tracks), total=len(tracks))
+        logger.test("Filtered items: ", items=json.dumps(filtered_tracks), total=len(filtered_tracks))
+        logger.test("Sorted items: ", items=json.dumps(sorted_tracks), total=len(sorted_tracks))
+
+    if not sorted_tracks:
+        logger.error('Sorted Albums is empty', artist_name=artist_name, track_name=track_name)
+        raise SpotifyException()
 
     album = sorted_tracks[0]['album']
     if album['album_type'] != 'album' and should_print_no_studio_album_msg:

@@ -14,7 +14,7 @@ def extract_params_from_track(track):
         popularity = track["popularity"]
         if album_type not in [ALBUM_TYPE_ALBUM, ALBUM_TYPE_SINGLE, ALBUM_TYPE_COMPILATION]:
             raise SpotifyComparatorException()
-        if not 1900 < release_year < 2100:
+        if not 1930 < release_year < 2030:
             raise SpotifyComparatorException()
         if not 0 <= popularity <= 100:
             raise SpotifyComparatorException()
@@ -45,7 +45,7 @@ def spotify_tracks_comparator(track):
     # range (0, 1)
     compare_by_album_popularity = popularity / 100
 
-    return 10000 * compare_by_album_type + 1000 * compare_by_release_year + compare_by_album_popularity
+    return 10000 * compare_by_album_type + compare_by_release_year + compare_by_album_popularity
 
 
 def remove_parentheses(logger, elem):
@@ -58,9 +58,16 @@ def remove_parentheses(logger, elem):
 
 
 # if this function returns False, the track will remove
-def filter_tracks(track, expected_track_name):
+def filter_tracks(track, expected_track_name='', expected_track_artist=''):
     try:
-        track['album']['images'][0]["url"]
+        album = track['album']
+        album['images'][0]["url"]
+        if 'Live' in track['name'] or 'Concert' in track['name']:
+            return False
+        if all([expected_track_artist not in artist['name'] for artist in album['artists']]):
+            return False
+        if album['album_type'] != 'album' and album['total_tracks'] > 30:  # Probably compilation album
+            return False
         return True
     except:
         return False
