@@ -1,6 +1,6 @@
 import os
 import glob
-from config.configurations import is_test
+from config.configurations import is_test, should_print_start_msg
 from constants import TEST_FOLDER_PATH, SORT_FOLDER_PATH
 from mp3.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME
 from mp3.exceptions import Mp3HandlerException
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     invalid_files = 0
     live_files = 0
     for mp3_file_path in sorted(mp3_files):
-        print("\n" + ("#" * 200) + "\n")
+        if should_print_start_msg or is_test: print("\n" + ("#" * 200) + "\n")
         logger.info(f"Starting organize song", mp3_file_path=mp3_file_path)
         init_tag_values(mp3_file_path=mp3_file_path)
         delete_unused_tags(mp3_file_path=mp3_file_path)

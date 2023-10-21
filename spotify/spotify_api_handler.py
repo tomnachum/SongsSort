@@ -27,7 +27,8 @@ def get_album_from_spotify(logger, artist_name, track_name):
         raise SpotifyException()
 
     tracks = data['tracks']['items']
-    filtered_tracks = list(filter(lambda track: filter_tracks(logger, track, track_name, artist_name), tracks))
+    filtered_tracks = list(filter(lambda track:
+                                  filter_tracks(logger, track, track_name, artist_name), tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
     if is_test:
         for track in sorted_tracks:

@@ -9,11 +9,14 @@ from spotify.exceptions import SpotifyComparatorException
 def remove_apostrophe(input_string):
     return input_string.replace("'", "")
 
+
 def remove_special_chars(input_string):
     return unicodedata.normalize('NFKD', input_string).encode('ASCII', 'ignore').decode('utf-8')
 
+
 def parse_str_for_request(input_string):
     return remove_special_chars(remove_apostrophe(input_string))
+
 
 def extract_params_from_track(track):
     try:
@@ -21,11 +24,11 @@ def extract_params_from_track(track):
         release_year = int(track['album']['release_date'].split('-')[0])
         popularity = track["popularity"]
         if album_type not in [ALBUM_TYPE_ALBUM, ALBUM_TYPE_SINGLE, ALBUM_TYPE_COMPILATION]:
-            raise SpotifyComparatorException()
-        if not 1930 < release_year < 2030:
-            raise SpotifyComparatorException()
+            raise SpotifyComparatorException("Album type is not supported")
+        if not 1900 <= release_year < 2030:
+            raise SpotifyComparatorException("Release year is not supported")
         if not 0 <= popularity <= 100:
-            raise SpotifyComparatorException()
+            raise SpotifyComparatorException("Popularity is not supported")
         return album_type, release_year, popularity
     except:
         raise SpotifyComparatorException()
@@ -64,17 +67,20 @@ def remove_parentheses(logger, elem):
         return album_name_no_parentheses
     return elem
 
+
 def original_escape_string(original_string):
     composed_string = unicodedata.normalize('NFC', original_string)
     escaped_string = composed_string.encode('unicode-escape').decode()
     return original_string.encode('utf-8').decode('unicode-escape')
+
 
 # if this function returns False, the track will remove
 def filter_tracks(logger, track, expected_track_name='', expected_track_artist=''):
     try:
         album = track['album']
         album['images'][0]["url"]
-        if any((word.lower() in ['live', 'concert']) for word in track['name'].split()):
+        if any((word.lower() in ['live', 'concert']) for word in track['name'].split()) and \
+                all(('live' not in word.lower()) for word in expected_track_name.split()):
             if is_test: logger.error('Live or Concert in track name')
             return False
         if all([(unidecode(expected_track_artist) not in unidecode(artist['name'])
