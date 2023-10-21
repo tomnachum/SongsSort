@@ -1,4 +1,4 @@
-is_test = True
+is_test = False
 
 # Print flags
 should_print_start_msg = False

@@ -1,6 +1,5 @@
 from mutagen.id3 import TIT2, TPE1, TALB, ID3, APIC
 import requests
-
 from mp3.constants import *
 
 TAGS_CONSTRUCTORS_DICT = {TITLE_TAG_NAME: TIT2, ARTIST_TAG_NAME: TPE1, ALBUM_NAME_TAG_NAME: TALB}

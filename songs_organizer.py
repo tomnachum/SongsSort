@@ -27,8 +27,9 @@ if __name__ == '__main__':
     invalid_files = 0
     live_files = 0
     for mp3_file_path in sorted(mp3_files):
-        if should_print_start_msg or is_test: print("\n" + ("#" * 200) + "\n")
-        logger.info(f"Starting organize song", mp3_file_path=mp3_file_path)
+        if should_print_start_msg or is_test:
+            print("\n" + ("#" * 200) + "\n")
+            logger.info(f"Starting organize song", mp3_file_path=mp3_file_path)
         init_tag_values(mp3_file_path=mp3_file_path)
         delete_unused_tags(mp3_file_path=mp3_file_path)
         if '(Live)' in mp3_file_path:

@@ -1,6 +1,5 @@
 import unicodedata
 from unidecode import unidecode
-
 from config.configurations import should_print_changed_album_name_msg, is_test
 from spotify.constants import ALBUM_TYPE_ALBUM, ALBUM_TYPE_SINGLE, ALBUM_TYPE_COMPILATION
 from spotify.exceptions import SpotifyComparatorException

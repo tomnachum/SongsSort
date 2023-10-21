@@ -1,6 +1,4 @@
 import re
-
-from config.configurations import is_test
 from mp3.exceptions import Mp3HandlerException
 
 

@@ -1,13 +1,10 @@
 import json
-import traceback
-
 import requests
 import base64
 from config.configurations import is_test, should_print_no_studio_album_msg
 from spotify.constants import *
 from spotify.exceptions import SpotifyException
-from spotify.utils import remove_apostrophe, spotify_tracks_comparator, remove_parentheses, filter_tracks, \
-    parse_str_for_request
+from spotify.utils import spotify_tracks_comparator, remove_parentheses, filter_tracks, parse_str_for_request
 
 
 def get_album_from_spotify(logger, artist_name, track_name):
