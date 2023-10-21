@@ -25,7 +25,6 @@ def get_album_from_spotify(logger, artist_name, track_name):
         logger.error('No albums found', artist_name=artist_name, track_name=track_name)
         raise SpotifyException()
 
-    album, cover = None, None
     tracks = data['tracks']['items']
     filtered_tracks = filter(lambda track: filter_tracks(track, track_name), tracks)
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)

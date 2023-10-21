@@ -61,6 +61,6 @@ def remove_parentheses(logger, elem):
 def filter_tracks(track, expected_track_name):
     try:
         track['album']['images'][0]["url"]
-        return track['name'] == expected_track_name
+        return True
     except:
         return False
