@@ -8,6 +8,7 @@ requests = "*"
 urllib3 = "==1.26.6"
 mutagen = "*"
 colorama = "*"
+unidecode = "*"
 
 [dev-packages]
 pytest = "*"

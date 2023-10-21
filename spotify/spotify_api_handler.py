@@ -6,13 +6,14 @@ import base64
 from config.configurations import is_test, should_print_no_studio_album_msg
 from spotify.constants import *
 from spotify.exceptions import SpotifyException
-from spotify.utils import remove_apostrophe, spotify_tracks_comparator, remove_parentheses, filter_tracks
+from spotify.utils import remove_apostrophe, spotify_tracks_comparator, remove_parentheses, filter_tracks, \
+    parse_str_for_request
 
 
 def get_album_from_spotify(logger, artist_name, track_name):
     token = get_spotify_token()
     response = requests.get(SPOTIFY_API_URL, headers={'Authorization': f'Bearer {token}'}, params={
-        'q': f'artist:{remove_apostrophe(artist_name)} track:{remove_apostrophe(track_name)}', 'type': 'track'})
+        'q': f'artist:{parse_str_for_request(artist_name)} track:{parse_str_for_request(track_name)}', 'type': 'track'})
     if response.status_code != 200:
         logger.error('Error occurred while fetching data from Spotify API', artist_name=artist_name,
                      track_name=track_name, status_code=response.status_code, response=response.text,
@@ -26,7 +27,7 @@ def get_album_from_spotify(logger, artist_name, track_name):
         raise SpotifyException()
 
     tracks = data['tracks']['items']
-    filtered_tracks = list(filter(lambda track: filter_tracks(track, track_name, artist_name), tracks))
+    filtered_tracks = list(filter(lambda track: filter_tracks(logger, track, track_name, artist_name), tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
     if is_test:
         for track in sorted_tracks:

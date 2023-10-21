@@ -1,4 +1,7 @@
-from config.configurations import should_print_changed_album_name_msg
+import unicodedata
+from unidecode import unidecode
+
+from config.configurations import should_print_changed_album_name_msg, is_test
 from spotify.constants import ALBUM_TYPE_ALBUM, ALBUM_TYPE_SINGLE, ALBUM_TYPE_COMPILATION
 from spotify.exceptions import SpotifyComparatorException
 
@@ -6,6 +9,11 @@ from spotify.exceptions import SpotifyComparatorException
 def remove_apostrophe(input_string):
     return input_string.replace("'", "")
 
+def remove_special_chars(input_string):
+    return unicodedata.normalize('NFKD', input_string).encode('ASCII', 'ignore').decode('utf-8')
+
+def parse_str_for_request(input_string):
+    return remove_special_chars(remove_apostrophe(input_string))
 
 def extract_params_from_track(track):
     try:
@@ -56,17 +64,26 @@ def remove_parentheses(logger, elem):
         return album_name_no_parentheses
     return elem
 
+def original_escape_string(original_string):
+    composed_string = unicodedata.normalize('NFC', original_string)
+    escaped_string = composed_string.encode('unicode-escape').decode()
+    return original_string.encode('utf-8').decode('unicode-escape')
 
 # if this function returns False, the track will remove
-def filter_tracks(track, expected_track_name='', expected_track_artist=''):
+def filter_tracks(logger, track, expected_track_name='', expected_track_artist=''):
     try:
         album = track['album']
         album['images'][0]["url"]
-        if 'Live' in track['name'] or 'Concert' in track['name']:
+        if any((word.lower() in ['live', 'concert']) for word in track['name'].split()):
+            if is_test: logger.error('Live or Concert in track name')
             return False
-        if all([expected_track_artist not in artist['name'] for artist in album['artists']]):
+        if all([(unidecode(expected_track_artist) not in unidecode(artist['name'])
+                 and unidecode(artist['name']) not in unidecode(expected_track_artist))
+                for artist in album['artists']]):
+            if is_test: logger.error('artist not in artists list of album')
             return False
-        if album['album_type'] != 'album' and album['total_tracks'] > 30:  # Probably compilation album
+        if album['album_type'] == 'album' and album['total_tracks'] > 30:  # Probably compilation album
+            if is_test: logger.error('album has more than 30 songs')
             return False
         return True
     except:
