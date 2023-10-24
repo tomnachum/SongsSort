@@ -60,15 +60,12 @@ def filter_tracks(logger: Logger, track: TrackObject, expected_track_name: str =
             return False
         if any((word.lower() in ['live', 'concert']) for word in track.name.split()) and \
                 all(('live' not in word.lower()) for word in expected_track_name.split()):
-            if is_test: logger.error('Live or Concert in track name')
             return False
         if all([(unidecode(expected_track_artist) not in unidecode(artist.name)
                  and unidecode(artist.name) not in unidecode(expected_track_artist))
                 for artist in track.album.artists]):
-            if is_test: logger.error('artist not in artists list of album')
             return False
         if track.album.album_type == 'album' and track.album.total_tracks > 30:  # Probably compilation album
-            if is_test: logger.error('album has more than 30 songs')
             return False
         return True
     except:
