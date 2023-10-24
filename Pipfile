@@ -9,6 +9,7 @@ urllib3 = "==1.26.6"
 mutagen = "*"
 colorama = "*"
 unidecode = "*"
+pydantic = "*"
 
 [dev-packages]
 pytest = "*"

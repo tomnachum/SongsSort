@@ -4,6 +4,7 @@ import base64
 from config.configurations import is_test, should_print_no_studio_album_msg
 from spotify.constants import *
 from spotify.exceptions import SpotifyException
+from spotify.schemas.spotify_response import SpotifyResponse
 from spotify.utils import spotify_tracks_comparator, remove_parentheses, filter_tracks, parse_str_for_request
 
 
@@ -16,36 +17,30 @@ def get_album_from_spotify(logger, artist_name, track_name):
                      track_name=track_name, status_code=response.status_code, response=response.text,
                      headers=response.headers)
         raise SpotifyException()
+    if is_test: logger.test("Spotify response: ", response=json.dumps(response.json()))
 
-    data = response.json()
-    if is_test: logger.test("Spotify response: ", response=json.dumps(data))
-    if data['tracks']['total'] <= 0:
+    spotify_response = SpotifyResponse(**response.json())
+
+    if spotify_response.tracks.total <= 0:
         logger.error('No albums found', artist_name=artist_name, track_name=track_name)
         raise SpotifyException()
 
-    tracks = data['tracks']['items']
-    filtered_tracks = list(filter(lambda track:
-                                  filter_tracks(logger, track, track_name, artist_name), tracks))
+    tracks = spotify_response.tracks.items
+    filtered_tracks = list(filter(lambda track: filter_tracks(logger, track, track_name, artist_name), tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
-    if is_test:
-        for track in sorted_tracks:
-            del track["album"]["available_markets"], track["album"]["external_urls"], \
-                track["available_markets"], track["artists"], track["disc_number"], track["external_ids"], \
-                track["external_urls"], track["id"], track["uri"]
-        logger.test("Found items: ", items=json.dumps(tracks), total=len(tracks))
-        logger.test("Filtered items: ", items=json.dumps(filtered_tracks), total=len(filtered_tracks))
-        logger.test("Sorted items: ", items=json.dumps(sorted_tracks), total=len(sorted_tracks))
+    if is_test: logger.test("Found items: ", response_tracks=tracks, filtered_tracks=filtered_tracks,
+                            sorted_tracks=sorted_tracks)
 
     if not sorted_tracks:
         logger.error('Sorted Albums is empty', artist_name=artist_name, track_name=track_name)
         raise SpotifyException()
 
-    album = sorted_tracks[0]['album']
-    if album['album_type'] != 'album' and should_print_no_studio_album_msg:
+    album = sorted_tracks[0].album
+    if album.album_type != 'album' and should_print_no_studio_album_msg:
         logger.info('Could not find studio album', artist_name=artist_name, track_name=track_name,
-                    found_album_type=album["album_type"])
+                    found_album_type=album.album_type)
 
-    return remove_parentheses(logger, album['name']), album['images'][0]['url']
+    return remove_parentheses(logger, album.name), album.images[0].url
 
 
 def get_spotify_token():
