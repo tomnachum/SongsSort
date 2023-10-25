@@ -10,6 +10,7 @@ mutagen = "*"
 colorama = "*"
 unidecode = "*"
 pydantic = "*"
+python-dotenv = "*"
 
 [dev-packages]
 pytest = "*"

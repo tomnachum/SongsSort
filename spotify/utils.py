@@ -1,6 +1,5 @@
 import unicodedata
 from unidecode import unidecode
-from config.configurations import should_print_changed_album_name_msg, is_test
 from spotify.schemas.spotify_item import TrackObject
 from utils.logger import Logger
 
@@ -43,8 +42,7 @@ def spotify_tracks_comparator(track: TrackObject):
 def remove_parentheses(logger, elem):
     if '(' in elem:
         album_name_no_parentheses = elem.split(' (')[0]
-        if should_print_changed_album_name_msg:
-            logger.info('Changed album name', original_album_name=elem, changed_album_name=album_name_no_parentheses)
+        logger.info('Changed album name', original_album_name=elem, changed_album_name=album_name_no_parentheses)
         return album_name_no_parentheses
     return elem
 

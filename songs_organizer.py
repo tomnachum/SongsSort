@@ -1,16 +1,15 @@
 import os
 import glob
-from config.configurations import is_test, should_print_start_msg
-from constants import TEST_FOLDER_PATH, SORT_FOLDER_PATH
 from mp3.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME
 from mp3.exceptions import Mp3HandlerException
 from mp3.mp3_handler import set_mp3_cover, init_tag_values, delete_all_tags, print_all_tags, delete_unused_tags, \
     set_mp3_tag_value
 from mp3.utils import extract_artist_and_track_from_mp3
-from spotify.spotify_api_handler import get_album_from_spotify, SpotifyException
+from spotify.spotify_api_handler import get_album_from_spotify, SpotifyException, get_spotify_token
 from utils.logger import Logger
 import time
 import datetime
+from dotenv import load_dotenv
 
 
 def print_results(logger, invalid_files, total_files, live_files, total_time):
@@ -22,17 +21,22 @@ def print_results(logger, invalid_files, total_files, live_files, total_time):
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
 
+
 if __name__ == '__main__':
+    load_dotenv()
+    is_test = bool(os.getenv('IS_TEST'))
+    folder_path = os.getenv('FOLDER_PATH')
+    client_id = os.getenv('CLIENT_ID')
+    client_secret = os.getenv('CLIENT_SECRET')
+
+    token = get_spotify_token(client_id=client_id, client_secret=client_secret)
     start_time = time.time()
-    logger = Logger()
-    folder_path = TEST_FOLDER_PATH if is_test else SORT_FOLDER_PATH
+    logger = Logger(is_test=is_test)
     mp3_files = glob.glob(os.path.join(folder_path, '*.mp3'))
     invalid_files = 0
     live_files = 0
     for mp3_file_path in sorted(mp3_files):
-        if should_print_start_msg or is_test:
-            print("\n" + ("#" * 200) + "\n")
-            logger.info(f"Starting organize song", mp3_file_path=mp3_file_path)
+        logger.test(f"\n{'#' * 200}\nStarting organize song", mp3_file_path=mp3_file_path)
         init_tag_values(mp3_file_path=mp3_file_path)
         delete_unused_tags(mp3_file_path=mp3_file_path)
         if '(Live)' in mp3_file_path:
@@ -43,7 +47,7 @@ if __name__ == '__main__':
             set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=TITLE_TAG_NAME, tag_value=track_name)
             set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ARTIST_TAG_NAME, tag_value=artist_name)
             album_name, cover_url = get_album_from_spotify(logger=logger, artist_name=artist_name,
-                                                           track_name=track_name)
+                                                           track_name=track_name, token=token)
             set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ALBUM_NAME_TAG_NAME, tag_value=album_name)
             set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=cover_url)
         except (Mp3HandlerException, SpotifyException, KeyboardInterrupt):
@@ -54,5 +58,6 @@ if __name__ == '__main__':
             invalid_files += 1
             continue
     end_time = time.time()
-    total_time = datetime.timedelta(seconds=end_time-start_time)
-    print_results(logger=logger, invalid_files=invalid_files, total_files=len(mp3_files), live_files=live_files, total_time=total_time)
+    total_time = datetime.timedelta(seconds=end_time - start_time)
+    print_results(logger=logger, invalid_files=invalid_files, total_files=len(mp3_files), live_files=live_files,
+                  total_time=total_time)

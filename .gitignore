@@ -1,3 +1,4 @@
 .idea
-/spotify/credentials.py
 .DS_Store
+.env
+.venv

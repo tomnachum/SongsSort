@@ -1,4 +1,7 @@
 class Logger:
+    def __init__(self, is_test: bool):
+        self.is_test = is_test
+
     def _print_helper(self, message, artist_name='', track_name='', **kwargs):
         to_print = message
         if artist_name and track_name:
@@ -18,4 +21,5 @@ class Logger:
         print(self._print_helper(f"INFO: {message}", **kwargs))
 
     def test(self, message, **kwargs):
-        print(self._print_helper(f"TEST LOG: {message}", **kwargs))
+        if self.is_test:
+            print(self._print_helper(f"TEST LOG: {message}", **kwargs))
