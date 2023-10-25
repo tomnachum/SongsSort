@@ -1,1 +1,3 @@
-config/configurations.py
+.idea
+/spotify/credentials.py
+.DS_Store
