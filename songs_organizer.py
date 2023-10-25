@@ -46,4 +46,9 @@ if __name__ == '__main__':
         except (Mp3HandlerException, SpotifyException, KeyboardInterrupt):
             invalid_files += 1
             continue
+        except Exception as e:
+            logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e)
+            invalid_files += 1
+            continue
+
     print_results(logger=logger, invalid_files=invalid_files, total_files=len(mp3_files), live_files=live_files)

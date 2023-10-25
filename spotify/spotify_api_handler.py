@@ -1,7 +1,7 @@
 import json
 import requests
 import base64
-from config.configurations import is_test, should_print_no_studio_album_msg
+from config.configurations import is_test, should_print_no_studio_album_msg, should_print_tracks_lists
 from spotify.constants import *
 from spotify.exceptions import SpotifyException
 from spotify.schemas.spotify_response import SpotifyResponse
@@ -17,7 +17,7 @@ def get_album_from_spotify(logger, artist_name, track_name):
 
     filtered_tracks = list(filter(lambda track: filter_tracks(logger, track, track_name, artist_name), all_tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
-    if is_test: logger.test("Found items: ", response_tracks=all_tracks, response_tracks_len=len(all_tracks),
+    if is_test and should_print_tracks_lists: logger.test("Found items: ", response_tracks=all_tracks, response_tracks_len=len(all_tracks),
                             filtered_tracks=filtered_tracks, filtered_tracks_len=len(filtered_tracks),
                             sorted_tracks=sorted_tracks, sorted_tracks_len=len(sorted_tracks))
 
@@ -34,26 +34,30 @@ def get_album_from_spotify(logger, artist_name, track_name):
 
 
 def get_all_tracks_from_spotify(logger, artist_name, track_name):
-    token = get_spotify_token()
-    headers = {'Authorization': f'Bearer {token}'}
-    params = {'q': f'artist:{parse_str_for_request(artist_name)} track:{parse_str_for_request(track_name)}', 'type': 'track'}
-    url = SPOTIFY_API_URL
-    has_more_tracks = True
-    all_tracks = []
-    while has_more_tracks:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code != HTTPStatus.OK:
-            logger.error('Error occurred while fetching data from Spotify API', artist_name=artist_name,
-                         track_name=track_name, status_code=response.status_code, response=response.text,
-                         headers=response.headers)
-            raise SpotifyException()
-        spotify_response = SpotifyResponse(**response.json())
-        all_tracks += spotify_response.tracks.items
-        if is_test: logger.info('Called spotify API', total_tracks=len(all_tracks))
-        url = spotify_response.tracks.next
-        params = None
-        has_more_tracks = spotify_response.tracks.next is not None
-    return all_tracks
+    try:
+        token = get_spotify_token()
+        headers = {'Authorization': f'Bearer {token}'}
+        params = {'q': f'artist:{parse_str_for_request(artist_name)} track:{parse_str_for_request(track_name)}', 'type': 'track'}
+        url = SPOTIFY_API_URL
+        has_more_tracks = True
+        all_tracks = []
+        while has_more_tracks:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code != HTTPStatus.OK:
+                logger.error('Error occurred while fetching data from Spotify API', artist_name=artist_name,
+                             track_name=track_name, status_code=response.status_code, response=response.text,
+                             headers=response.headers)
+                raise SpotifyException()
+            spotify_response = SpotifyResponse(**response.json())
+            all_tracks += spotify_response.tracks.items
+            if is_test: logger.info('Called spotify API', total_tracks=len(all_tracks))
+            url = spotify_response.tracks.next
+            params = None
+            has_more_tracks = spotify_response.tracks.next is not None
+        return all_tracks
+    except Exception:
+        logger.error('Failed fetching tracks with spotify api', artist_name=artist_name, track_name=track_name)
+        raise SpotifyException()
 
 
 def get_spotify_token():
