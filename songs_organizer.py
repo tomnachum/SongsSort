@@ -9,18 +9,21 @@ from mp3.mp3_handler import set_mp3_cover, init_tag_values, delete_all_tags, pri
 from mp3.utils import extract_artist_and_track_from_mp3
 from spotify.spotify_api_handler import get_album_from_spotify, SpotifyException
 from utils.logger import Logger
+import time
+import datetime
 
 
-def print_results(logger, invalid_files, total_files, live_files):
+def print_results(logger, invalid_files, total_files, live_files, total_time):
     logger.success(f'\nTotal files {total_files}')
+    logger.success(f'Total time {total_time}')
     logger.success(f'Live files {live_files}')
     if invalid_files > 0:
         logger.error(f'Total invalid files = {invalid_files} / {total_files - live_files}')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
 
-
 if __name__ == '__main__':
+    start_time = time.time()
     logger = Logger()
     folder_path = TEST_FOLDER_PATH if is_test else SORT_FOLDER_PATH
     mp3_files = glob.glob(os.path.join(folder_path, '*.mp3'))
@@ -50,5 +53,6 @@ if __name__ == '__main__':
             logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e)
             invalid_files += 1
             continue
-
-    print_results(logger=logger, invalid_files=invalid_files, total_files=len(mp3_files), live_files=live_files)
+    end_time = time.time()
+    total_time = datetime.timedelta(seconds=end_time-start_time)
+    print_results(logger=logger, invalid_files=invalid_files, total_files=len(mp3_files), live_files=live_files, total_time=total_time)
