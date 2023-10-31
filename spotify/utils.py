@@ -1,3 +1,4 @@
+import json
 import unicodedata
 from unidecode import unidecode
 from spotify.schemas.spotify_item import TrackObject
@@ -63,8 +64,12 @@ def filter_tracks(logger: Logger, track: TrackObject, expected_track_name: str =
                  and unidecode(artist.name) not in unidecode(expected_track_artist))
                 for artist in track.album.artists]):
             return False
-        if track.album.album_type == 'album' and track.album.total_tracks > 30:  # Probably compilation album
+        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
             return False
         return True
     except:
         return False
+
+
+def tracks_to_json(all_tracks):
+    return json.dumps(list(map(lambda track: (track.dict()), all_tracks)))

@@ -18,17 +18,17 @@ def print_results(logger, invalid_files, total_files, live_files, total_time):
     logger.success(f'Live files {live_files}')
     if invalid_files > 0:
         logger.error(f'Total invalid files = {invalid_files} / {total_files - live_files}')
+        logger.error(f'Total invalid percentage = {(invalid_files / (total_files - live_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
 
 
 if __name__ == '__main__':
     load_dotenv()
-    is_test = bool(os.getenv('IS_TEST'))
+    is_test = True if os.getenv('IS_TEST') == 'True' else False
     folder_path = os.getenv('FOLDER_PATH')
     client_id = os.getenv('CLIENT_ID')
     client_secret = os.getenv('CLIENT_SECRET')
-
     token = get_spotify_token(client_id=client_id, client_secret=client_secret)
     start_time = time.time()
     logger = Logger(is_test=is_test)
@@ -50,6 +50,7 @@ if __name__ == '__main__':
                                                            track_name=track_name, token=token)
             set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ALBUM_NAME_TAG_NAME, tag_value=album_name)
             set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=cover_url)
+            logger.test('Succeed organizing file', artist_name=artist_name, track_name=track_name)
         except (Mp3HandlerException, SpotifyException, KeyboardInterrupt):
             invalid_files += 1
             continue

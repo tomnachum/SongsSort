@@ -1,9 +1,12 @@
+import json
+
 import requests
 import base64
 from spotify.constants import SPOTIFY_TOKEN_URL, SPOTIFY_API_URL
 from spotify.exceptions import SpotifyException
 from spotify.schemas.spotify_response import SpotifyResponse
-from spotify.utils import spotify_tracks_comparator, remove_parentheses, filter_tracks, parse_str_for_request
+from spotify.utils import spotify_tracks_comparator, remove_parentheses, filter_tracks, parse_str_for_request, \
+    tracks_to_json
 from http import HTTPStatus
 
 
@@ -14,14 +17,13 @@ def get_album_from_spotify(logger, artist_name, track_name, token):
         logger.error('No albums found', artist_name=artist_name, track_name=track_name)
         raise SpotifyException()
 
+    logger.test("\n" + tracks_to_json(all_tracks))
+    logger.test(f"number of tracks got from spotify: {len(all_tracks)}")
     filtered_tracks = list(filter(lambda track: filter_tracks(logger, track, track_name, artist_name), all_tracks))
     sorted_tracks = sorted(filtered_tracks, key=spotify_tracks_comparator, reverse=True)
-    logger.test("Found items: ", response_tracks=all_tracks, response_tracks_len=len(all_tracks),
-                filtered_tracks=filtered_tracks, filtered_tracks_len=len(filtered_tracks),
-                sorted_tracks=sorted_tracks, sorted_tracks_len=len(sorted_tracks))
 
     if not sorted_tracks:
-        logger.error('Sorted Albums is empty', artist_name=artist_name, track_name=track_name)
+        logger.error('After sorting albums, 0 albums remained.', artist_name=artist_name, track_name=track_name)
         raise SpotifyException()
 
     album = sorted_tracks[0].album
@@ -37,6 +39,8 @@ def get_all_tracks_from_spotify(logger, artist_name, track_name, token):
         headers = {'Authorization': f'Bearer {token}'}
         params = {'q': f'artist:{parse_str_for_request(artist_name)} track:{parse_str_for_request(track_name)}',
                   'type': 'track'}
+        params = {'q': f'artist:{parse_str_for_request(artist_name)}',
+                  'type': 'track'}
         url = SPOTIFY_API_URL
         has_more_tracks = True
         all_tracks = []
@@ -49,7 +53,6 @@ def get_all_tracks_from_spotify(logger, artist_name, track_name, token):
                 raise SpotifyException()
             spotify_response = SpotifyResponse(**response.json())
             all_tracks += spotify_response.tracks.items
-            logger.test('Called spotify API', total_tracks=len(all_tracks))
             url = spotify_response.tracks.next
             params = None
             has_more_tracks = spotify_response.tracks.next is not None
