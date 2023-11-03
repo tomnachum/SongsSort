@@ -40,6 +40,8 @@ class AlbumsLogic:
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> int:
+        if 'Various Artists' in [a.name for a in track.album.artists]:
+            return 0
         # first sore by album type:
         # [1, 4] / -1
         # [0, 3] / :3
@@ -71,9 +73,10 @@ class AlbumsLogic:
                     all(('live' not in word.lower()) for word in expected_track_name.split()):
                 self._logger.test("live or concert in album name", track_name_in_spotify=track.name)
                 return False
-            if all([(unidecode(expected_track_artist) not in unidecode(artist.name)
-                     and unidecode(artist.name) not in unidecode(expected_track_artist))
-                    for artist in track.album.artists]):
+            actual_artists = set([a.name for a in track.album.artists]) - {'Various Artists'}
+            if actual_artists and all([(unidecode(expected_track_artist) not in unidecode(artist_name)
+                                        and unidecode(artist_name) not in unidecode(expected_track_artist))
+                                       for artist_name in actual_artists]):
                 self._logger.test("artist not in album artists", album_artists=track.album.artists,
                                   expected_track_artist=expected_track_artist)
                 return False
@@ -82,5 +85,6 @@ class AlbumsLogic:
                                   popularity=track.popularity)
                 return False
             return True
-        except:
+        except Exception as e:
+            self._logger.test('filter exception', error=e)
             return False
