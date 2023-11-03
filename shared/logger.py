@@ -2,10 +2,10 @@ class Logger:
     def __init__(self, is_test: bool):
         self.is_test = is_test
 
-    def _print_helper(self, message, artist_name='', track_name='', **kwargs):
+    def _print_helper(self, message, artist='', track='', **kwargs):
         to_print = message
-        if artist_name and track_name:
-            to_print += ' ' * (50 - len(message)) + f' {artist_name} - {track_name}'
+        if artist and track:
+            to_print += ' ' * (50 - len(message)) + f' {artist} - {track}'
         if kwargs:
             for key, val in kwargs.items():
                 to_print += f'\n\t{key} = {val}'

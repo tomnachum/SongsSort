@@ -63,3 +63,17 @@ class TrackObject(BaseModel):
         if not 0 <= v <= 100:
             raise ValueError(f'popularity not supported popularity={v}')
         return v
+
+
+class Tracks(BaseModel):
+    href: str
+    limit: int
+    next: Optional[str]
+    offset: int
+    previous: Optional[str]
+    total: int
+    items: List[TrackObject]
+
+
+class SpotifyResponse(BaseModel):
+    tracks: Tracks

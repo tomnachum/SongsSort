@@ -11,6 +11,7 @@ colorama = "*"
 unidecode = "*"
 pydantic = "*"
 python-dotenv = "*"
+wraptimer = "*"
 
 [dev-packages]
 pytest = "*"
