@@ -14,13 +14,15 @@ class DiscogsService:
         self._api_secret = api_secret
         self._logger = logger
 
-    def _get_studio_albums(self, artist: str) -> List[str]:
+    def _get_studio_albums(self, artist: str, track: str) -> List[str]:
         response = requests.get(DISCOGS_URL, params={
-            'q': artist,
+            'artist': artist,
             'type': 'master',
             'key': self._api_key,
-            'secret': self._api_secret
+            'secret': self._api_secret,
+            'track': track
         })
+        # self._logger.info(json.dumps(json.loads(response.text)))
 
         if response.status_code != HTTPStatus.OK:
             self._logger.error('Error occurred while fetching data from discogs API', artist_name=artist,
@@ -35,13 +37,18 @@ class DiscogsService:
 
         album_names = []
         for album in albums:
-            if 'Compilation' not in album.format and 'Single' not in album.format and 'Album' in album.format:
+            if 'Compilation' not in album.format and 'Single' not in album.format and 'Album' in album.format and 'Live' not in album.title:
                 album_name = album.title.split(" - ")[1]
                 album_names.append(album_name)
         return album_names
 
-    def verify_albums(self, artist: str, tracks: List[TrackEntity]):
-        studio_albums = self._get_studio_albums(artist=artist)
+    def verify_albums(self, artist: str, track: str, tracks: List[TrackEntity]):
+        studio_albums = self._get_studio_albums(artist=artist, track=track)
+        verified_albums = []
         for t in tracks:
-            if t.album.name in studio_albums and t.album.album_type == 'album':
-                t.album.album_type = "verified_album"
+            for w in t.album.name.split(' ('):
+                if w in studio_albums and t.album.album_type == 'album':
+                    t.album.album_type = "verified_album"
+                    verified_albums.append(t.album.name)
+        if len(verified_albums) > 0:
+            self._logger.test('Found albums using discogs', verified_albums=verified_albums)

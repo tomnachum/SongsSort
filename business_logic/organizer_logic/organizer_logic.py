@@ -36,7 +36,7 @@ class OrganizerLogic:
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ARTIST_TAG_NAME,
                                                     tag_value=artist)
                 all_tracks: List[TrackEntity] = self._fetch_tracks_service.get_tracks(artist=artist, track=track)
-                self._discogs_service.verify_albums(artist=artist, tracks=all_tracks)
+                self._discogs_service.verify_albums(artist=artist, track=track, tracks=all_tracks)
                 album_entity: AlbumEntity = self._albums_logic.get_best_album(artist=artist, track=track,
                                                                               all_tracks=all_tracks)
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ALBUM_NAME_TAG_NAME,

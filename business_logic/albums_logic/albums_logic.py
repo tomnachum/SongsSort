@@ -18,7 +18,7 @@ class AlbumsLogic:
         if len(all_tracks) <= 0:
             self._logger.error('No albums found', artist=artist, track=track)
             raise ValueError
-        self._logger.test("\n" + tracks_to_json(all_tracks), total_tracks=len(all_tracks))
+        self._logger.test("All tracks before filtering:\n" + tracks_to_json(all_tracks), total_tracks=len(all_tracks))
 
         filtered_tracks = filter(lambda t: self.filter_tracks(t, track, artist), all_tracks)
         sorted_tracks = sorted(filtered_tracks, key=self.tracks_comparator, reverse=True)
@@ -42,6 +42,9 @@ class AlbumsLogic:
     def tracks_comparator(self, track: TrackEntity) -> int:
         if 'Various Artists' in [a.name for a in track.album.artists]:
             return 0
+        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
+            self._logger.test("album has alot of songs and is popular", album=track.album.model_dump())
+            track.album.album_type = 'compilation'
         # first sore by album type:
         # [1, 4] / -1
         # [0, 3] / :3
@@ -77,12 +80,7 @@ class AlbumsLogic:
             if actual_artists and all([(unidecode(expected_track_artist) not in unidecode(artist_name)
                                         and unidecode(artist_name) not in unidecode(expected_track_artist))
                                        for artist_name in actual_artists]):
-                self._logger.test("artist not in album artists", album_artists=track.album.artists,
-                                  expected_track_artist=expected_track_artist)
-                return False
-            if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
-                self._logger.test("album has alot of songs and is popular", tracks=track.album.total_tracks,
-                                  popularity=track.popularity)
+                self._logger.test("artist not in album artists", album=track.album.model_dump())
                 return False
             return True
         except Exception as e:

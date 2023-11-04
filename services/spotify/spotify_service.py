@@ -1,5 +1,5 @@
 import unicodedata
-from typing import List
+from typing import List, Optional
 import requests
 import base64
 from dtos.spotify_response import SpotifyResponse, TrackObject
@@ -35,11 +35,12 @@ class SpotifyService(FetchTracksInfoService):
         else:
             raise SpotifyException('Could not get access token for spotify_service API.')
 
-    def get_tracks(self, artist, track) -> List[TrackEntity]:
-        parsed_artist_name = _parse_str_for_request(artist)
-        parsed_track_name = _parse_str_for_request(track)
+    def get_tracks(self, artist: Optional[str] = None, track: Optional[str] = None) -> List[TrackEntity]:
         headers = {'Authorization': f'Bearer {self._token}'}
-        params = {'q': f'artist:{parsed_artist_name} track:{parsed_track_name}', 'type': 'track'}
+        query = ''
+        if artist: query += f'artist:{_parse_str_for_request(artist)}'
+        if track: query += f' track:{_parse_str_for_request(track)}'
+        params = {'q': query, 'type': 'track'}
         url = SPOTIFY_API_URL
         has_more_tracks = True
         all_tracks: List[TrackObject] = []
