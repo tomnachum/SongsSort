@@ -28,18 +28,21 @@ class AlbumsLogic:
             raise ValueError
 
         album = sorted_tracks[0].album
-        if album.album_type != 'album':
+        if album.album_type != 'album' and album.album_type != 'verified_album':
             self._logger.info('Could not find studio album', artist=artist, track=track, found_type=album.album_type)
 
         if '(' in album.name:
             album_name_no_parentheses = album.name.split(' (')[0]
-            self._logger.info('Changed album name', original=album.name, new=album_name_no_parentheses)
+            self._logger.info('Changed album name', original=album.name, new=album_name_no_parentheses, artist=artist,
+                              track=track)
             album.name = album_name_no_parentheses
 
         return album
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> int:
+        if '(Deluxe Edition)' in track.album.name:
+            return 0
         if 'Various Artists' in [a.name for a in track.album.artists]:
             return 0
         if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
@@ -72,15 +75,20 @@ class AlbumsLogic:
             if not track.album or not track.album.images:
                 self._logger.test("album not exists or picture not exist")
                 return False
-            if any((word.lower() in ['live', 'concert']) for word in track.name.split()) and \
+            if any((word.lower() in ['live', 'concert']) for word in
+                   track.album.name.replace('(', '').replace(')', '').split()) and \
                     all(('live' not in word.lower()) for word in expected_track_name.split()):
                 self._logger.test("live or concert in album name", track_name_in_spotify=track.name)
                 return False
-            actual_artists = set([a.name for a in track.album.artists]) - {'Various Artists'}
-            if actual_artists and all([(unidecode(expected_track_artist) not in unidecode(artist_name)
-                                        and unidecode(artist_name) not in unidecode(expected_track_artist))
-                                       for artist_name in actual_artists]):
-                self._logger.test("artist not in album artists", album=track.album.model_dump())
+            actual_artists = list(set([a.name for a in track.album.artists]) - {'Various Artists'})
+            if actual_artists and len(actual_artists) > 1 and all(
+                    [(unidecode(expected_track_artist) not in unidecode(artist_name)
+                      and unidecode(artist_name) not in unidecode(expected_track_artist))
+                     for artist_name in actual_artists]):
+                self._logger.test("artist not in album artists", album=json.dumps(track.album.model_dump()))
+                return False
+            if actual_artists and len(actual_artists) == 1 and actual_artists[0] != expected_track_artist:
+                self._logger.test("artist is not equal to album artist", album=json.dumps(track.album.model_dump()))
                 return False
             return True
         except Exception as e:
