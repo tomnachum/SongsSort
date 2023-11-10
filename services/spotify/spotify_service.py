@@ -3,6 +3,8 @@ import unicodedata
 from typing import List, Optional
 import requests
 import base64
+
+from dtos.resolvers.dto_resolvers import track_dto_to_entity
 from dtos.spotify_response import SpotifyResponse, TrackObject
 from http import HTTPStatus
 from entities.track import TrackEntity
@@ -57,4 +59,4 @@ class SpotifyService(FetchTracksInfoService):
             url = spotify_response.tracks.next
             params = None
             has_more_tracks = spotify_response.tracks.next is not None
-        return [TrackEntity(**t.model_dump()) for t in all_tracks]
+        return [track_dto_to_entity(t) for t in all_tracks]

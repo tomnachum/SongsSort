@@ -7,7 +7,7 @@ from services.discogs.discogs_service import DiscogsService
 from services.interfaces.fetch_tracks_info_service import FetchTracksInfoService
 from services.mp3.mp3_service import MP3Service
 from services.spotify.spotify_service import SpotifyService
-from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME
+from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, TRACK_NUMBER_TAG_NAME
 from shared.logger import Logger
 
 
@@ -41,6 +41,8 @@ class OrganizerLogic:
                                                                               all_tracks=all_tracks)
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ALBUM_NAME_TAG_NAME,
                                                     tag_value=album_entity.name)
+                self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=TRACK_NUMBER_TAG_NAME,
+                                                    tag_value=f'{album_entity.track_number}/{album_entity.total_tracks}')
                 self._mp3_service.set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=album_entity.images[0].url)
             except Exception as e:
                 self._logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e)

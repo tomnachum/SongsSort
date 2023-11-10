@@ -11,3 +11,4 @@ class AlbumEntity(BaseModel):
     total_tracks: int
     name: str
     release_date: str
+    track_number: int

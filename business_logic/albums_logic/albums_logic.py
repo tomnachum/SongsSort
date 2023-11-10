@@ -27,7 +27,8 @@ class AlbumsLogic:
             self._logger.error('After sorting albums, 0 albums remained.', artist=artist, track=track)
             raise ValueError
 
-        album = sorted_tracks[0].album
+        track_entity = sorted_tracks[0]
+        album = track_entity.album
         if album.album_type != 'album' and album.album_type != 'verified_album':
             self._logger.info('Could not find studio album', artist=artist, track=track, found_type=album.album_type)
 

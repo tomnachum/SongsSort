@@ -1,12 +1,14 @@
-from mutagen.id3 import TIT2, TPE1, TALB, ID3, APIC
+from mutagen.id3 import TIT2, TPE1, TALB, ID3, APIC, TRCK
 import requests
-from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, PRESERVED_TAGS, DEFAULT_TAG_VALUE
+from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, PRESERVED_TAGS, DEFAULT_TAG_VALUE, \
+    TRACK_NUMBER_TAG_NAME
 import re
-from typing import Tuple
+from typing import Tuple, Union
 from shared.exceptions import Mp3ServiceException
 from shared.logger import Logger
 
-TAGS_CONSTRUCTORS_DICT = {TITLE_TAG_NAME: TIT2, ARTIST_TAG_NAME: TPE1, ALBUM_NAME_TAG_NAME: TALB}
+TAGS_CONSTRUCTORS_DICT = {TITLE_TAG_NAME: TIT2, ARTIST_TAG_NAME: TPE1, ALBUM_NAME_TAG_NAME: TALB,
+                          TRACK_NUMBER_TAG_NAME: TRCK}
 
 
 class MP3Service:
