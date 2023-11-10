@@ -1,3 +1,4 @@
+import json
 import unicodedata
 from typing import List, Optional
 import requests
@@ -48,8 +49,8 @@ class SpotifyService(FetchTracksInfoService):
             response = requests.get(url, headers=headers, params=params)
             if response.status_code != HTTPStatus.OK:
                 self._logger.error('Error occurred while fetching data from Spotify API', artist=artist,
-                                   track=track, status_code=response.status_code, response=response.text,
-                                   headers=response.headers)
+                                   track=track, status_code=response.status_code, response=json.dumps(response.text),
+                                   headers=json.dumps(response.headers))
                 raise SpotifyException()
             spotify_response = SpotifyResponse(**response.json())
             all_tracks += spotify_response.tracks.items

@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from typing import List
 import requests
@@ -26,8 +27,8 @@ class DiscogsService:
 
         if response.status_code != HTTPStatus.OK:
             self._logger.error('Error occurred while fetching data from discogs API', artist_name=artist,
-                               status_code=response.status_code, response=response.text,
-                               headers=response.headers)
+                               status_code=response.status_code, response=json.dumps(response.text),
+                               headers=json.dumps(response.headers))
             raise DiscogsException()
 
         discogs_response = DiscogsResponse(**response.json())
