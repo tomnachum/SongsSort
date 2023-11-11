@@ -23,3 +23,6 @@ class Logger:
     def test(self, message, **kwargs):
         if self.is_test:
             print(self._print_helper(f"TEST LOG: {message}", **kwargs))
+
+    def warning(self, message, **kwargs):
+        print("\033[38;5;208m{}\033[0m".format(self._print_helper(f'WARNING: {message}', **kwargs)))

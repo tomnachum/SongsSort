@@ -1,4 +1,5 @@
 import json
+import time
 import unicodedata
 from typing import List, Optional
 import requests
@@ -26,6 +27,7 @@ class SpotifyService(FetchTracksInfoService):
         self._client_id = client_id
         self._client_secret = client_secret
         self._token = self._get_spotify_token()
+        self.max_retries = 3
 
     def _get_spotify_token(self):
         client_creds = f"{self._client_id}:{self._client_secret}"
@@ -48,15 +50,27 @@ class SpotifyService(FetchTracksInfoService):
         has_more_tracks = True
         all_tracks: List[TrackObject] = []
         while has_more_tracks:
-            response = requests.get(url, headers=headers, params=params)
-            if response.status_code != HTTPStatus.OK:
-                self._logger.error('Error occurred while fetching data from Spotify API', artist=artist,
-                                   track=track, status_code=response.status_code, response=json.dumps(response.text),
-                                   headers=json.dumps(response.headers))
-                raise SpotifyException()
-            spotify_response = SpotifyResponse(**response.json())
+            spotify_response = self.request_spotify_with_retry(artist, headers, params, track, url)
             all_tracks += spotify_response.tracks.items
             url = spotify_response.tracks.next
             params = None
             has_more_tracks = spotify_response.tracks.next is not None
         return [track_dto_to_entity(t) for t in all_tracks]
+
+    def request_spotify_with_retry(self, artist, headers, params, track, url):
+        retries = 0
+        while retries <= self.max_retries:
+            response = requests.get(url, headers=headers, params=params)
+            if 'Retry-After' in response.headers:
+                wait = int(response.headers['Retry-After'])
+                self._logger.warning(f'Spotify reached the rate limit, waiting for {wait} seconds...', )
+                time.sleep(wait)
+                retries += 1
+                continue
+            elif response.status_code != HTTPStatus.OK:
+                self._logger.error('Error occurred while fetching data from Spotify API', artist=artist,
+                                   track=track, status_code=response.status_code)
+                raise SpotifyException()
+            return SpotifyResponse(**response.json())
+        self._logger.error(f'Spotify API failed {self.max_retries} times, exiting', artist=artist, track=track)
+        raise SpotifyException()

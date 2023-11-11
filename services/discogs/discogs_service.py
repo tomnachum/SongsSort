@@ -1,4 +1,5 @@
 import json
+import time
 from http import HTTPStatus
 from typing import List
 import requests
@@ -14,24 +15,33 @@ class DiscogsService:
         self._api_key = api_key
         self._api_secret = api_secret
         self._logger = logger
+        self.max_retries = 3
+
+    def request_discogs_with_retry(self, artist: str, track: str) -> DiscogsResponse:
+        retries = 0
+        while retries < self.max_retries:
+            response = requests.get(DISCOGS_URL, params={'artist': artist, 'type': 'master', 'key': self._api_key,
+                                                         'secret': self._api_secret, 'track': track})
+            requests_made_in_window = int(response.headers['X-Discogs-Ratelimit-Used'])
+            requests_limit = int(response.headers['X-Discogs-Ratelimit'])
+            requests_remaining = int(response.headers['X-Discogs-Ratelimit-Remaining'])
+            if requests_remaining == 0:
+                self._logger.warning('Discogs is reaching the rate limit, waiting for a minute...',
+                                     requests_made_in_window=requests_made_in_window, requests_limit=requests_limit,
+                                     requests_remaining=requests_remaining)
+                time.sleep(60)
+                retries += 1
+                continue
+            elif response.status_code != HTTPStatus.OK:
+                self._logger.error('Error occurred while fetching data from discogs API', artist=artist, track=track,
+                                   status_code=response.status_code)
+                raise DiscogsException()
+            return DiscogsResponse(**response.json())
+        self._logger.error(f'Discogs API failed {self.max_retries} times, exiting', artist=artist, track=track)
+        raise DiscogsException()
 
     def _get_studio_albums(self, artist: str, track: str) -> List[str]:
-        response = requests.get(DISCOGS_URL, params={
-            'artist': artist,
-            'type': 'master',
-            'key': self._api_key,
-            'secret': self._api_secret,
-            'track': track
-        })
-        # self._logger.info(json.dumps(json.loads(response.text)))
-
-        if response.status_code != HTTPStatus.OK:
-            self._logger.error('Error occurred while fetching data from discogs API', artist_name=artist,
-                               status_code=response.status_code, response=json.dumps(response.text),
-                               headers=json.dumps(response.headers))
-            raise DiscogsException()
-
-        discogs_response = DiscogsResponse(**response.json())
+        discogs_response: DiscogsResponse = self.request_discogs_with_retry(artist=artist, track=track)
         albums = discogs_response.results
         if len(albums) <= 0:
             return []
