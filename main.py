@@ -11,8 +11,14 @@ from wraptimer import TimeIt
 def main():
     env_vars: EnvVars = get_env_vars()
     logger = Logger(is_test=env_vars.IS_TEST)
+    all_files = set(glob.glob(os.path.join(env_vars.FOLDER_PATH, '*')))
+    mp3_files = set(glob.glob(os.path.join(env_vars.FOLDER_PATH, '*.mp3')))
 
-    mp3_files = glob.glob(os.path.join(env_vars.FOLDER_PATH, '*.mp3'))
+    if len(all_files) > len(mp3_files):
+        logger.error(f'Found non mp3 files in {env_vars.FOLDER_PATH}',
+                     non_mp3_files=all_files - mp3_files)
+        exit(1)
+
     mp3_files_no_live = list(filter(lambda f: '(Live)' not in f, mp3_files))
 
     organizer_logic = OrganizerLogic(logger=logger, env_vars=env_vars)

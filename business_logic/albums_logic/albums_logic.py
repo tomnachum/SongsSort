@@ -52,6 +52,8 @@ class AlbumsLogic:
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> int:
+        if 'Anniversary' in track.album.name:
+            return 0
         if '(Deluxe Edition)' in track.album.name:
             return 0
         if 'Various Artists' in [a.name for a in track.album.artists]:
