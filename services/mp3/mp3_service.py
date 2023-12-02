@@ -3,8 +3,7 @@ import requests
 from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, PRESERVED_TAGS, DEFAULT_TAG_VALUE, \
     TRACK_NUMBER_TAG_NAME, TRACK_YEAR_TAG_NAME
 import re
-from typing import Tuple, Union
-from shared.exceptions import Mp3ServiceException
+from typing import Tuple
 from shared.logger import Logger
 
 TAGS_CONSTRUCTORS_DICT = {TITLE_TAG_NAME: TIT2, ARTIST_TAG_NAME: TPE1, ALBUM_NAME_TAG_NAME: TALB,
@@ -59,4 +58,4 @@ class MP3Service:
         except Exception:
             self._logger.error('Invalid MP3 file name', mp3_file=mp3_file_path, file_name=file_name,
                                file_name_no_extension=file_name_no_extension, artist=artist, track=track)
-            raise Mp3ServiceException()
+            raise ValueError

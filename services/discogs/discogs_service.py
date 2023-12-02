@@ -7,7 +7,6 @@ from dtos.discogs_response import DiscogsResponse
 from entities.album import AlbumType
 from entities.track import TrackEntity
 from shared.constants import DISCOGS_URL
-from shared.exceptions import DiscogsException
 from shared.logger import Logger
 
 
@@ -36,10 +35,10 @@ class DiscogsService:
             elif response.status_code != HTTPStatus.OK:
                 self._logger.error('Error occurred while fetching data from discogs API', artist=artist, track=track,
                                    status_code=response.status_code)
-                raise DiscogsException()
+                raise ValueError
             return DiscogsResponse(**response.json())
         self._logger.error(f'Discogs API failed {self.max_retries} times, exiting', artist=artist, track=track)
-        raise DiscogsException()
+        raise ValueError
 
     def _get_studio_albums(self, artist: str, track: str) -> List[str]:
         discogs_response: DiscogsResponse = self.request_discogs_with_retry(artist=artist, track=track)

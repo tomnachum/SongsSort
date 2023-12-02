@@ -1,5 +1,5 @@
 import os
-import glob
+from glob import glob
 from business_logic.organizer_logic.organizer_logic import OrganizerLogic
 from shared.logger import Logger
 from schemas.env_vars import EnvVars
@@ -7,12 +7,16 @@ from shared.env_vars_factory import get_env_vars
 from wraptimer import TimeIt
 
 
+def get_files_in_folder(folder_path: str, files_type: str = '') -> set[str]:
+    return set(f for f in glob(os.path.join(folder_path, '*' + files_type), recursive=False) if os.path.isfile(f))
+
+
 @TimeIt().func
 def main():
     env_vars: EnvVars = get_env_vars()
     logger = Logger(is_test=env_vars.IS_TEST)
-    all_files = set(glob.glob(os.path.join(env_vars.FOLDER_PATH, '*')))
-    mp3_files = set(glob.glob(os.path.join(env_vars.FOLDER_PATH, '*.mp3')))
+    all_files = get_files_in_folder(folder_path=env_vars.FOLDER_PATH)
+    mp3_files = get_files_in_folder(folder_path=env_vars.FOLDER_PATH, files_type='.mp3')
 
     if len(all_files) > len(mp3_files):
         logger.error(f'Found non mp3 files in {env_vars.FOLDER_PATH}',

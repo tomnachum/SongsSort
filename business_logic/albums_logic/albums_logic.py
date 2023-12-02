@@ -32,12 +32,12 @@ class AlbumsLogic:
 
         sorted_tracks = sorted(filtered_tracks, key=self.tracks_comparator, reverse=True)
 
+        self._logger.test("All tracks after filtering:\n" + tracks_to_json(sorted_tracks),
+                          total_tracks=len(sorted_tracks))
+
         if not sorted_tracks:
             self._logger.error('After sorting albums, 0 albums remained.', artist=artist, track=track)
             raise ValueError
-
-        self._logger.test("All tracks after filtering:\n" + tracks_to_json(sorted_tracks),
-                          total_tracks=len(sorted_tracks))
 
         track_entity = sorted_tracks[0]
         album = track_entity.album
