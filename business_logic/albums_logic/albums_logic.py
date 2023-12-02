@@ -19,9 +19,6 @@ class AlbumsLogic:
         self._logger = logger
 
     def get_best_album(self, artist: str, track: str, all_tracks: List[TrackEntity]) -> AlbumEntity:
-        if len(all_tracks) <= 0:
-            self._logger.error('No albums found', artist=artist, track=track)
-            raise ValueError
         self._logger.test("All tracks before filtering:\n" + tracks_to_json(all_tracks), total_tracks=len(all_tracks))
 
         filtered_tracks = filter(lambda t: self.filter_tracks(t, track, artist), all_tracks)
@@ -117,7 +114,7 @@ class AlbumsLogic:
                     self._logger.test("artist is not even included in album artist", album_name=track.album.name,
                                       album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
-            if track.name != expected_track_name and expected_track_name not in track.name:
+            if track.name.lower() != expected_track_name.lower() and expected_track_name not in track.name:
                 self._logger.test("track name is not expected track name", album_name=track.album.name,
                                   track_name_in_spotify=track.name,
                                   expected_track_name=expected_track_name)

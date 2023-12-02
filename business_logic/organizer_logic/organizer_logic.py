@@ -25,8 +25,8 @@ class OrganizerLogic:
         self._discogs_service = DiscogsService(api_key=env_vars.DISCOGS_API_KEY, api_secret=env_vars.DISCOGS_API_SECRET,
                                                logger=logger)
 
-    def organize_songs(self, mp3_files: List[str]) -> int:
-        invalid_files = 0
+    def organize_songs(self, mp3_files: List[str]) -> List[str]:
+        invalid_files = []
         for mp3_file_path in sorted(mp3_files):
             try:
                 self._logger.test(f"\n{'#' * 200}\nStarting organize song", mp3_file_path=mp3_file_path)
@@ -49,7 +49,7 @@ class OrganizerLogic:
                                                     tag_value=album_entity.release_date)
                 self._mp3_service.set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=album_entity.images[0].url)
             except Exception as e:
-                invalid_files += 1
+                invalid_files.append(mp3_file_path)
                 if isinstance(e, ValueError):
                     continue
                 self._logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e,

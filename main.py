@@ -32,9 +32,10 @@ def main():
     live_files = len(mp3_files) - len(mp3_files_no_live)
     logger.success(f'\nTotal files {total_files}')
     logger.success(f'Live files {live_files}')
-    if invalid_files > 0:
-        logger.error(f'Total invalid files = {invalid_files} / {total_files - live_files}')
-        logger.error(f'Total invalid percentage = {(invalid_files / (total_files - live_files)) * 100}%')
+    if len(invalid_files) > 0:
+        logger.error(f'Total invalid files = {len(invalid_files)} / {total_files - live_files}')
+        logger.error(f'Invalid files = {invalid_files}')
+        logger.error(f'Total invalid percentage = {(len(invalid_files) / (total_files - live_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
 

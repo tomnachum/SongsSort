@@ -54,8 +54,12 @@ class MP3Service:
             file_name = mp3_file_path.split("/")[-1]
             file_name_no_extension = file_name.split(".mp3")[0]
             artist, track = re.split(r' - | \u2013 ', file_name_no_extension)
-            return artist.replace(':', '/'), track
-        except Exception:
-            self._logger.error('Invalid MP3 file name', mp3_file=mp3_file_path, file_name=file_name,
+
+            if len(artist.strip()) != len(artist) or len(track.strip()) != len(track):
+                raise ValueError("String should not have spaces at the beginning or end.")
+
+            return artist.replace(':', '/'), track.replace(':', '/')
+        except Exception as err:
+            self._logger.error('Invalid MP3 file name', err=err, mp3_file=mp3_file_path, file_name=file_name,
                                file_name_no_extension=file_name_no_extension, artist=artist, track=track)
             raise ValueError

@@ -51,6 +51,9 @@ class SpotifyService(FetchTracksInfoService):
             url = spotify_response.tracks.next
             params = None
             has_more_tracks = spotify_response.tracks.next is not None
+        if len(all_tracks) <= 0:
+            self._logger.error('No albums found', artist=artist, track=track)
+            raise ValueError
         return [track_dto_to_entity(t) for t in all_tracks]
 
     def request_spotify_with_retry(self, artist, params, track, url):
