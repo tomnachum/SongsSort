@@ -35,7 +35,8 @@ class SpotifyService(FetchTracksInfoService):
             token_data = response.json()
             return token_data['access_token']
         else:
-            raise ValueError('Could not get access token for spotify_service API.')
+            self._logger.error('Could not get access token for spotify_service API.')
+            raise ValueError()
 
     def get_tracks(self, artist: Optional[str] = None, track: Optional[str] = None) -> List[TrackEntity]:
         query = ''

@@ -91,9 +91,9 @@ class AlbumsLogic:
             if not track.album or not track.album.images:
                 self._logger.test("album not exists or picture not exist")
                 return False
-            if any((word.lower() in ['live', 'concert', 'karaoke']) for word in
-                   track.album.name.replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace(',',
-                                                                                                                '').split()) and \
+            album_name_no_special_chars = ''.join(
+                char for char in track.album.name if char not in ['(', ')', '[', ']', ',', "'"])
+            if any((word.lower() in ['live', 'concert', 'karaoke']) for word in album_name_no_special_chars.split()) and \
                     all(('live' not in word.lower()) for word in expected_track_name.split()):
                 self._logger.test("live or concert in album name", album_name=track.album.name,
                                   track_name_in_spotify=track.name, expected_track_name=expected_track_name)
@@ -114,7 +114,14 @@ class AlbumsLogic:
                     self._logger.test("artist is not even included in album artist", album_name=track.album.name,
                                       album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
-            if track.name.lower() != expected_track_name.lower() and expected_track_name not in track.name:
+            if 'live' in [word.lower() for word in track.name.split()] and \
+                    'live' not in [word.lower() for word in expected_track_name.split()]:
+                self._logger.test("live in track name", album_name=track.album.name,
+                                  track_name_in_spotify=track.name,
+                                  expected_track_name=expected_track_name)
+                return False
+            if unidecode(track.name.lower()) != unidecode(expected_track_name.lower()) and unidecode(
+                    expected_track_name.lower()) not in unidecode(track.name.lower()):
                 self._logger.test("track name is not expected track name", album_name=track.album.name,
                                   track_name_in_spotify=track.name,
                                   expected_track_name=expected_track_name)

@@ -8,7 +8,13 @@ class Logger:
             to_print += ' ' * (50 - len(message)) + f' {artist} - {track}'
         if kwargs:
             for key, val in kwargs.items():
-                to_print += f'\n\t{key} = {val}'
+                val_print = ''
+                if isinstance(val, list):
+                    for e in val:
+                        val_print += '\n\t\t' + e
+                else:
+                    val_print = val
+                to_print += f'\n\t{key} = {val_print}'
         return to_print
 
     def error(self, message, **kwargs):

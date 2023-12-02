@@ -53,10 +53,15 @@ class MP3Service:
         try:
             file_name = mp3_file_path.split("/")[-1]
             file_name_no_extension = file_name.split(".mp3")[0]
-            artist, track = re.split(r' - | \u2013 ', file_name_no_extension)
+            hyphen_split_arr = re.split(r' - | \u2013 ', file_name_no_extension)
+            artist = hyphen_split_arr[0]
+            track = ' - '.join(hyphen_split_arr[1:])
 
             if len(artist.strip()) != len(artist) or len(track.strip()) != len(track):
-                raise ValueError("String should not have spaces at the beginning or end.")
+                self._logger.error("String should not have spaces at the beginning or end.", mp3_file=mp3_file_path,
+                                   file_name=file_name,
+                                   file_name_no_extension=file_name_no_extension, artist=artist, track=track)
+                raise ValueError()
 
             return artist.replace(':', '/'), track.replace(':', '/')
         except Exception as err:
