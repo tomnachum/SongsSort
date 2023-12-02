@@ -1,6 +1,6 @@
 from typing import List
-from entities.album import AlbumEntity
-from entities.track import TrackEntity
+from entities.album import AlbumEntity, AlbumType
+from entities.track import TrackEntity, Score
 import json
 from unidecode import unidecode
 from shared.logger import Logger
@@ -8,6 +8,10 @@ from shared.logger import Logger
 
 def tracks_to_json(all_tracks: List[TrackEntity]) -> str:
     return json.dumps(list(map(lambda track: (track.dict()), all_tracks)), indent=None, separators=(',', ':'))
+
+
+ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
+                       AlbumType.SINGLE.value: 2, AlbumType.COMPILATION.value: 1}
 
 
 class AlbumsLogic:
@@ -32,11 +36,12 @@ class AlbumsLogic:
             self._logger.error('After sorting albums, 0 albums remained.', artist=artist, track=track)
             raise ValueError
 
-        self._logger.test("All tracks after filtering:\n" + tracks_to_json(sorted_tracks), total_tracks=len(all_tracks))
+        self._logger.test("All tracks after filtering:\n" + tracks_to_json(sorted_tracks),
+                          total_tracks=len(sorted_tracks))
 
         track_entity = sorted_tracks[0]
         album = track_entity.album
-        if album.album_type != 'album' and album.album_type != 'verified_album':
+        if album.album_type != AlbumType.ALBUM and album.album_type != AlbumType.VERIFIED_ALBUM:
             self._logger.info('Could not find studio album', artist=artist, track=track, found_type=album.album_type)
 
         if '(' in album.name:
@@ -51,35 +56,37 @@ class AlbumsLogic:
         return album
 
     # the best track gets the highest score
-    def tracks_comparator(self, track: TrackEntity) -> int:
-        if 'Anniversary' in track.album.name:
-            return 0
-        if '(Deluxe Edition)' in track.album.name:
-            return 0
-        if 'Various Artists' in [a.name for a in track.album.artists]:
+    def tracks_comparator(self, track: TrackEntity) -> float:
+        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name or 'Various Artists' in [a.name
+                                                                                                                for a in
+                                                                                                                track.album.artists]:
             return 0
         if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
             self._logger.test("album has alot of songs and is popular", album=track.album.model_dump())
             track.album.album_type = 'compilation'
+
         # first sore by album type:
-        # [1, 4] / -1
-        # [0, 3] / :3
-        # range [0, 1]
-        type_score_dict = {"verified_album": 4, "album": 3, "single": 2, "compilation": 1}
-        compare_by_album_type = (type_score_dict[track.album.album_type] - 1) / 3
+        # [1, 2, 3, 3.4]
+        # [100, 200, 300, 340]
+        compare_by_album_type = ALBUM_TYPE_TO_SCORE[track.album.album_type] * 100
 
         # then sort by release year
-        # (1900, 2100) / -1900
-        # (0, 200) / :200
-        # range (0, 1)
-        compare_by_release_year = 1 - ((int(track.album.release_date) - 1900) / 200)
+        # lowest is better score
+        # 2020 - [1920, 2020]
+        # [100,...,0]
+        compare_by_release_year = 2020 - int(track.album.release_date)
 
         # then sort by popularity
-        # [0, 100] / :100
-        # range (0, 1)
-        compare_by_album_popularity = track.popularity / 100
+        # [0,...,100]
+        compare_by_album_popularity = track.popularity
 
-        return 10000 * compare_by_album_type + compare_by_release_year + compare_by_album_popularity
+        score = 10 * compare_by_album_type + 15 * compare_by_release_year + compare_by_album_popularity
+        track.score = Score(album_type=compare_by_album_type,
+                            release_year=compare_by_release_year,
+                            popularity=compare_by_album_popularity,
+                            total=score)
+
+        return score
 
     # if this function returns False, the track will be removed
     def filter_tracks(self, track: TrackEntity, expected_track_name: str = '', expected_track_artist: str = '') -> bool:
@@ -110,6 +117,11 @@ class AlbumsLogic:
                     self._logger.test("artist is not even included in album artist", album_name=track.album.name,
                                       album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
+            if track.name != expected_track_name and expected_track_name not in track.name:
+                self._logger.test("track name is not expected track name", album_name=track.album.name,
+                                  track_name_in_spotify=track.name,
+                                  expected_track_name=expected_track_name)
+                return False
             return True
         except Exception as e:
             self._logger.test('filter exception', error=e)

@@ -3,14 +3,14 @@ from typing import List, Optional
 from pydantic import BaseModel, field_validator
 
 
-class AlbumType(Enum):
+class SpotifyAlbumType(Enum):
     Album = 'album'
     Single = 'single'
     Compilation = 'compilation'
 
     @staticmethod
     def list():
-        return list(map(lambda c: c.value, AlbumType))
+        return list(map(lambda c: c.value, SpotifyAlbumType))
 
 
 class SimplifiedArtistObject(BaseModel):
@@ -32,7 +32,7 @@ class Album(BaseModel):
 
     @field_validator('album_type')
     def validate_album_type(cls, v):
-        if v not in AlbumType.list():
+        if v not in SpotifyAlbumType.list():
             raise ValueError(f'album type not supported album_type={v}')
         return v
 

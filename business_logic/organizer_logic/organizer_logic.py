@@ -1,3 +1,4 @@
+import traceback
 from typing import List
 from business_logic.albums_logic.albums_logic import AlbumsLogic
 from entities.album import AlbumEntity
@@ -48,7 +49,8 @@ class OrganizerLogic:
                                                     tag_value=album_entity.release_date)
                 self._mp3_service.set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=album_entity.images[0].url)
             except Exception as e:
-                self._logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e)
+                self._logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e,
+                                   trace=traceback.format_exc())
                 invalid_files += 1
                 continue
         return invalid_files

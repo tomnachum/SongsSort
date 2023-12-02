@@ -4,6 +4,7 @@ from http import HTTPStatus
 from typing import List
 import requests
 from dtos.discogs_response import DiscogsResponse
+from entities.album import AlbumType
 from entities.track import TrackEntity
 from shared.constants import DISCOGS_URL
 from shared.exceptions import DiscogsException
@@ -59,7 +60,7 @@ class DiscogsService:
         for t in tracks:
             for w in t.album.name.split(' ('):
                 if w in studio_albums and t.album.album_type == 'album':
-                    t.album.album_type = "verified_album"
+                    t.album.album_type = AlbumType.VERIFIED_ALBUM
                     verified_albums.append(t.album.name)
         if len(verified_albums) > 0:
             self._logger.test('Found albums using discogs', verified_albums=verified_albums)
