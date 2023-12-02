@@ -14,11 +14,11 @@ def get_files_in_folder(folder_path: str, files_type: str = '') -> set[str]:
     return set(f for f in glob(os.path.join(folder_path, '*' + files_type), recursive=False) if os.path.isfile(f))
 
 
-def copy_invalid_files_to_test_folder(test_folder_path: str, invalid_files: List[str]) -> None:
+def copy_invalid_files_to_invalid_folder(invalid_folder_path: str, invalid_files: List[str]) -> None:
     for invalid_file in invalid_files:
-        os.makedirs(test_folder_path, exist_ok=True)
+        os.makedirs(invalid_folder_path, exist_ok=True)
         file_name = os.path.basename(invalid_file)
-        destination_path = os.path.join(test_folder_path, file_name)
+        destination_path = os.path.join(invalid_folder_path, file_name)
         shutil.copy2(invalid_file, destination_path)
 
 
@@ -49,7 +49,8 @@ def main():
         logger.error(f'Total invalid files = {len(invalid_files)} / {total_files - live_files}')
         logger.error(f'Invalid files', invalid_files=invalid_files)
         if not env_vars.IS_TEST:
-            copy_invalid_files_to_test_folder(test_folder_path=env_vars.TEST_FOLDER_PATH, invalid_files=invalid_files)
+            copy_invalid_files_to_invalid_folder(invalid_folder_path=env_vars.INVALID_FOLDER_PATH,
+                                                 invalid_files=invalid_files)
         logger.error(f'Total invalid percentage = {(len(invalid_files) / (total_files - live_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
