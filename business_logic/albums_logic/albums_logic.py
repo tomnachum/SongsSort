@@ -54,10 +54,6 @@ class AlbumsLogic:
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> float:
-        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name or 'Various Artists' in [a.name
-                                                                                                                for a in
-                                                                                                                track.album.artists]:
-            return 0
         if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
             self._logger.test("album has alot of songs and is popular", album=track.album.model_dump())
             track.album.album_type = 'compilation'
@@ -76,6 +72,12 @@ class AlbumsLogic:
         # then sort by popularity
         # [0,...,100]
         compare_by_album_popularity = track.popularity
+
+        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name:
+            compare_by_album_type -= 100
+        if 'Various Artists' in [a.name for a in track.album.artists]:
+            compare_by_album_type -= 100
+            compare_by_album_popularity = 0
 
         score = 10 * compare_by_album_type + 15 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
