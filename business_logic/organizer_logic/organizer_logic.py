@@ -9,7 +9,7 @@ from services.interfaces.fetch_tracks_info_service import FetchTracksInfoService
 from services.mp3.mp3_service import MP3Service
 from services.spotify.spotify_service import SpotifyService
 from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, TRACK_NUMBER_TAG_NAME, \
-    TRACK_YEAR_TAG_NAME
+    TRACK_YEAR_TAG_NAME, DISC_NUM_TAG_NAME
 from shared.logger import Logger
 
 
@@ -47,6 +47,8 @@ class OrganizerLogic:
                                                     tag_value=f'{album_entity.track_number}/{album_entity.total_tracks}')
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=TRACK_YEAR_TAG_NAME,
                                                     tag_value=album_entity.release_date)
+                self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=DISC_NUM_TAG_NAME,
+                                                    tag_value=str(album_entity.disc_number))
                 self._mp3_service.set_mp3_cover(mp3_file_path=mp3_file_path, cover_url=album_entity.images[0].url)
             except Exception as e:
                 invalid_files.append(mp3_file_path)

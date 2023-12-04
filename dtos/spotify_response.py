@@ -57,6 +57,7 @@ class TrackObject(BaseModel):
     popularity: Optional[int]
     preview_url: Optional[str]
     track_number: Optional[int]
+    disc_number: Optional[int]
 
     @field_validator('popularity')
     def validate_popularity(cls, v):

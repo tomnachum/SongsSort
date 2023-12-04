@@ -24,6 +24,7 @@ class AlbumEntity(BaseModel):
     name: str
     release_date: str
     track_number: int
+    disc_number: int
 
     @field_validator('album_type')
     def validate_album_type(cls, v):

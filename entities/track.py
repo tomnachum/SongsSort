@@ -14,3 +14,4 @@ class TrackEntity(BaseModel):
     popularity: Optional[int]
     track_number: int
     score: Optional[Score] = None
+    disc_number: int
