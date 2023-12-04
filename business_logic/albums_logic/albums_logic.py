@@ -110,6 +110,10 @@ class AlbumsLogic:
                 return False
             if actual_artists and len(actual_artists) == 1 and unidecode(actual_artists[0]) != unidecode(
                     expected_track_artist):
+                if 'Tribute' in actual_artists[0]:
+                    self._logger.test("Tribute in artist", album_name=track.album.name,
+                                      album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
+                    return False
                 self._logger.test("artist is not equal to album artist", album_name=track.album.name,
                                   album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                 if unidecode(expected_track_artist) not in unidecode(actual_artists[0]):
