@@ -21,7 +21,7 @@ class DiscogsService:
         retries = 0
         while retries < self.max_retries:
             response = requests.get(DISCOGS_URL, params={'artist': artist, 'type': 'master', 'key': self._api_key,
-                                                         'secret': self._api_secret, 'track': track})
+                                                         'secret': self._api_secret})
             requests_made_in_window = int(response.headers['X-Discogs-Ratelimit-Used'])
             requests_limit = int(response.headers['X-Discogs-Ratelimit'])
             requests_remaining = int(response.headers['X-Discogs-Ratelimit-Remaining'])
@@ -48,7 +48,10 @@ class DiscogsService:
 
         album_names = []
         for album in albums:
-            if 'Compilation' not in album.format and 'Single' not in album.format and 'Album' in album.format and 'Live' not in album.title:
+            if 'Compilation' not in album.format and \
+                    'Single' not in album.format and \
+                    'Album' in album.format and \
+                    'Live' not in album.title:
                 album_name = album.title.split(" - ")[1]
                 album_names.append(album_name)
         return album_names
