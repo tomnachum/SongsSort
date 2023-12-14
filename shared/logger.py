@@ -11,7 +11,7 @@ class Logger:
                 val_print = ''
                 if isinstance(val, list):
                     for e in val:
-                        val_print += '\n\t\t' + e
+                        val_print += '\n\t\t' + str(e)
                 else:
                     val_print = val
                 to_print += f'\n\t{key} = {val_print}'

@@ -39,7 +39,10 @@ def main():
     mp3_files_no_live = list(filter(lambda f: '(Live)' not in f, mp3_files))
 
     organizer_logic = OrganizerLogic(logger=logger, env_vars=env_vars)
-    invalid_files = organizer_logic.organize_songs(mp3_files=mp3_files_no_live)
+    invalid_files, modified_files = organizer_logic.organize_songs(mp3_files=mp3_files_no_live)
+
+    if len(modified_files) > 0:
+        logger.success('\nFiles were modified', modified_files=modified_files)
 
     total_files = len(mp3_files)
     live_files = len(mp3_files) - len(mp3_files_no_live)

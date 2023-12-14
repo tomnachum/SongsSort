@@ -27,6 +27,7 @@ class OrganizerLogic:
 
     def organize_songs(self, mp3_files: List[str]) -> List[str]:
         invalid_files = []
+        modified_files = []
         for mp3_file_path in sorted(mp3_files):
             try:
                 self._logger.test(f"\n{'#' * 200}\nStarting organize song", mp3_file_path=mp3_file_path)
@@ -41,6 +42,11 @@ class OrganizerLogic:
                 self._discogs_service.verify_albums(artist=artist, track=track, tracks=all_tracks)
                 album_entity: AlbumEntity = self._albums_logic.get_best_album(artist=artist, track=track,
                                                                               all_tracks=all_tracks)
+                old_album = self._mp3_service.get_mp3_tag_value(mp3_file_path=mp3_file_path,
+                                                                tag_name=ALBUM_NAME_TAG_NAME)
+                if old_album != album_entity.name:
+                    modified_files.append(
+                        {'file': mp3_file_path, 'old_album': old_album, 'new_album': album_entity.name})
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=ALBUM_NAME_TAG_NAME,
                                                     tag_value=album_entity.name)
                 self._mp3_service.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=TRACK_NUMBER_TAG_NAME,
@@ -57,4 +63,4 @@ class OrganizerLogic:
                 self._logger.error('Error occurred when trying to organize song', mp3_file_path=mp3_file_path, error=e,
                                    trace=traceback.format_exc())
                 continue
-        return invalid_files
+        return invalid_files, modified_files
