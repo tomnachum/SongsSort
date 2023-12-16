@@ -1,5 +1,5 @@
 import traceback
-from typing import List
+from typing import List, Tuple, Dict
 from business_logic.albums_logic.albums_logic import AlbumsLogic
 from entities.album import AlbumEntity
 from entities.track import TrackEntity
@@ -25,7 +25,7 @@ class OrganizerLogic:
         self._discogs_service = DiscogsService(api_key=env_vars.DISCOGS_API_KEY, api_secret=env_vars.DISCOGS_API_SECRET,
                                                logger=logger)
 
-    def organize_songs(self, mp3_files: List[str]) -> List[str]:
+    def organize_songs(self, mp3_files: List[str]) -> Tuple[List[str], List[Dict]]:
         invalid_files = []
         modified_files = []
         for mp3_file_path in sorted(mp3_files):

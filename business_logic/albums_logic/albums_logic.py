@@ -73,7 +73,7 @@ class AlbumsLogic:
         # [0,...,100]
         compare_by_album_popularity = track.popularity
 
-        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name:
+        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name or 'Acoustic' in track.name:
             compare_by_album_type -= 100
         if 'Various Artists' in [a.name for a in track.album.artists]:
             compare_by_album_type -= 100
@@ -95,9 +95,10 @@ class AlbumsLogic:
                 return False
             album_name_no_special_chars = ''.join(
                 char for char in track.album.name if char not in ['(', ')', '[', ']', ',', "'"])
-            if any((word.lower() in ['live', 'concert', 'karaoke']) for word in album_name_no_special_chars.split()) and \
+            if any((word.lower() in ['live', 'concert', 'karaoke', 'tribute']) for word in
+                   album_name_no_special_chars.split()) and \
                     all(('live' not in word.lower()) for word in expected_track_name.split()):
-                self._logger.test("live or concert in album name", album_name=track.album.name,
+                self._logger.test("banned name in album name", album_name=track.album.name,
                                   track_name_in_spotify=track.name, expected_track_name=expected_track_name)
                 return False
             actual_artists = list(set([a.name for a in track.album.artists]) - {'Various Artists'})

@@ -42,19 +42,27 @@ def main():
     invalid_files, modified_files = organizer_logic.organize_songs(mp3_files=mp3_files_no_live)
 
     if len(modified_files) > 0:
-        logger.success('\nFiles were modified', modified_files=modified_files)
+        logger.warning('Total modified files', total=len(modified_files))
+        logger.warning('Modified files', modified_files=modified_files)
+        if not env_vars.IS_TEST:
+            m_files = list(map(lambda d: d['file'], modified_files))
+            copy_invalid_files_to_invalid_folder(invalid_folder_path=env_vars.MODIFIED_FOLDER_PATH,
+                                                 invalid_files=m_files)
+    else:
+        logger.warning('No files were modified')
 
     total_files = len(mp3_files)
     live_files = len(mp3_files) - len(mp3_files_no_live)
-    logger.success(f'\nTotal files {total_files}')
+    studio_files = total_files - live_files
+    logger.success(f'Total files {total_files}')
     logger.success(f'Live files {live_files}')
     if len(invalid_files) > 0:
-        logger.error(f'Total invalid files = {len(invalid_files)} / {total_files - live_files}')
+        logger.error(f'Total invalid files = {len(invalid_files)} / {studio_files}')
         logger.error(f'Invalid files', invalid_files=invalid_files)
         if not env_vars.IS_TEST:
             copy_invalid_files_to_invalid_folder(invalid_folder_path=env_vars.INVALID_FOLDER_PATH,
                                                  invalid_files=invalid_files)
-        logger.error(f'Total invalid percentage = {(len(invalid_files) / (total_files - live_files)) * 100}%')
+        logger.error(f'Total invalid percentage = {(len(invalid_files) / (studio_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
 

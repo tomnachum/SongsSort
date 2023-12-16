@@ -18,17 +18,17 @@ class Logger:
         return to_print
 
     def error(self, message, **kwargs):
-        print("\033[91m {}\033[00m".format(self._print_helper(f'ERROR: {message}', **kwargs)))
+        print("\033[91m {}\033[00m".format(self._print_helper(f'\nERROR: {message}', **kwargs)))
 
     def success(self, message, **kwargs):
-        print("\033[92m {}\033[00m".format(self._print_helper(message, **kwargs)))
+        print("\033[92m {}\033[00m".format(self._print_helper(f"\nSUCCESS: {message}", **kwargs)))
 
     def info(self, message, **kwargs):
-        print(self._print_helper(f"INFO: {message}", **kwargs))
+        print(self._print_helper(f"\nINFO: {message}", **kwargs))
 
     def test(self, message, **kwargs):
         if self.is_test:
-            print(self._print_helper(f"TEST LOG: {message}", **kwargs))
+            print(self._print_helper(f"\nTEST: {message}", **kwargs))
 
     def warning(self, message, **kwargs):
-        print("\033[38;5;208m{}\033[0m".format(self._print_helper(f'WARNING: {message}', **kwargs)))
+        print("\033[38;5;208m{}\033[0m".format(self._print_helper(f'\nWARNING: {message}', **kwargs)))

@@ -53,7 +53,7 @@ class DiscogsService:
                     'Album' in album.format and \
                     'Live' not in album.title:
                 album_name = album.title.split(" - ")[1]
-                album_names.append(album_name)
+                album_names.append(album_name.lower())
         return album_names
 
     def verify_albums(self, artist: str, track: str, tracks: List[TrackEntity]):
@@ -61,7 +61,7 @@ class DiscogsService:
         verified_albums = []
         for t in tracks:
             for w in t.album.name.split(' ('):
-                if w in studio_albums and t.album.album_type == 'album':
+                if w.lower() in studio_albums and t.album.album_type == 'album':
                     t.album.album_type = AlbumType.VERIFIED_ALBUM
                     verified_albums.append(t.album.name)
         if len(verified_albums) > 0:
