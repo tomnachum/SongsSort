@@ -14,11 +14,11 @@ def get_files_in_folder(folder_path: str, files_type: str = '') -> set[str]:
     return set(f for f in glob(os.path.join(folder_path, '*' + files_type), recursive=False) if os.path.isfile(f))
 
 
-def copy_invalid_files_to_invalid_folder(invalid_folder_path: str, invalid_files: List[str]) -> None:
-    for invalid_file in invalid_files:
-        os.makedirs(invalid_folder_path, exist_ok=True)
+def copy_files_to_test_folder(destination_folder_path: str, files: List[str]) -> None:
+    os.makedirs(destination_folder_path, exist_ok=True)
+    for invalid_file in files:
         file_name = os.path.basename(invalid_file)
-        destination_path = os.path.join(invalid_folder_path, file_name)
+        destination_path = os.path.join(destination_folder_path, file_name)
         shutil.copy2(invalid_file, destination_path)
 
 
@@ -46,8 +46,8 @@ def main():
         logger.warning('Modified files', modified_files=modified_files)
         if not env_vars.IS_TEST:
             m_files = list(map(lambda d: d['file'], modified_files))
-            copy_invalid_files_to_invalid_folder(invalid_folder_path=env_vars.MODIFIED_FOLDER_PATH,
-                                                 invalid_files=m_files)
+            copy_files_to_test_folder(destination_folder_path=env_vars.MODIFIED_FOLDER_PATH,
+                                      files=m_files)
     else:
         logger.warning('No files were modified')
 
@@ -60,8 +60,8 @@ def main():
         logger.error(f'Total invalid files = {len(invalid_files)} / {studio_files}')
         logger.error(f'Invalid files', invalid_files=invalid_files)
         if not env_vars.IS_TEST:
-            copy_invalid_files_to_invalid_folder(invalid_folder_path=env_vars.INVALID_FOLDER_PATH,
-                                                 invalid_files=invalid_files)
+            copy_files_to_test_folder(destination_folder_path=env_vars.INVALID_FOLDER_PATH,
+                                      files=invalid_files)
         logger.error(f'Total invalid percentage = {(len(invalid_files) / (studio_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')
