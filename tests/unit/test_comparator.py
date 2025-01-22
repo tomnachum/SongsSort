@@ -23,7 +23,7 @@ def create_track(album_type: str, release_date: str, popularity: int) -> TrackEn
 
 @pytest.fixture(scope='module')
 def tracks_comparator():
-    logger = Logger(is_test=True)
+    logger = Logger(debug_enabled=True)
     albums_logic: AlbumsLogic = AlbumsLogic(logger=logger)
     return albums_logic.tracks_comparator
 

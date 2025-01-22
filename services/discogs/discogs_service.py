@@ -65,4 +65,4 @@ class DiscogsService:
                     t.album.album_type = AlbumType.VERIFIED_ALBUM
                     verified_albums.append(t.album.name)
         if len(verified_albums) > 0:
-            self._logger.test('Found albums using discogs', verified_albums=verified_albums)
+            self._logger.debug('Found albums using discogs', verified_albums=verified_albums)

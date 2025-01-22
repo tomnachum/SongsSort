@@ -4,22 +4,34 @@ from entities.track import TrackEntity, Score
 import json
 from unidecode import unidecode
 from shared.logger import Logger
+from typing import Dict
+
+def print_track(track: TrackEntity)->Dict:
+    score = track.score
+    if score:
+        score = {'score': score.total}
+    return {
+        'album_name': track.album.name,
+        'score': track.score
+    }
 
 
-def tracks_to_json(all_tracks: List[TrackEntity]) -> str:
-    return json.dumps(list(map(lambda track: (track.dict()), all_tracks)), indent=None, separators=(',', ':'))
+def format_tracks(all_tracks: List[TrackEntity]) -> List[Dict]:
+    return [print_track(track=track) for track in all_tracks]
 
 
 ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
-                       AlbumType.SINGLE.value: 2, AlbumType.COMPILATION.value: 1}
+                       AlbumType.SINGLE.value: 2, AlbumType.COMPILATION.value: 1, AlbumType.SOUNDTRACK.value: 3.2
+                       }
 
+BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
         self._logger = logger
 
     def get_best_album(self, artist: str, track: str, all_tracks: List[TrackEntity]) -> AlbumEntity:
-        self._logger.test("All tracks before filtering:\n" + tracks_to_json(all_tracks), total_tracks=len(all_tracks))
+        self._logger.debug("All tracks:", tracks=format_tracks(all_tracks), total_tracks=len(all_tracks))
 
         filtered_tracks = filter(lambda t: self.filter_tracks(t, track, artist), all_tracks)
 
@@ -29,14 +41,23 @@ class AlbumsLogic:
 
         sorted_tracks = sorted(filtered_tracks, key=self.tracks_comparator, reverse=True)
 
-        self._logger.test("All tracks after filtering:\n" + tracks_to_json(sorted_tracks),
-                          total_tracks=len(sorted_tracks))
+        album_name_tracks_mapping: Dict[str, TrackEntity] = {}
+        for track in sorted_tracks:
+            if track.album.name in album_name_tracks_mapping:
+                album_name_tracks_mapping[track.album.name].score.total +=1
+            else:
+                album_name_tracks_mapping[track.album.name] = track
 
-        if not sorted_tracks:
+        unique_tracks = sorted(list(album_name_tracks_mapping.values()), key=lambda track: track.score.total, reverse=True)
+
+        self._logger.debug("All tracks after filtering and sorting:", tracks = format_tracks(unique_tracks),
+                           total_tracks=len(unique_tracks))
+
+        if not unique_tracks:
             self._logger.error('After sorting albums, 0 albums remained.', artist=artist, track=track)
             raise ValueError
 
-        track_entity = sorted_tracks[0]
+        track_entity = unique_tracks[0]
         album = track_entity.album
         if album.album_type != AlbumType.ALBUM and album.album_type != AlbumType.VERIFIED_ALBUM:
             self._logger.info('Could not find studio album', artist=artist, track=track, found_type=album.album_type)
@@ -54,9 +75,12 @@ class AlbumsLogic:
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> float:
-        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:  # Probably compilation album
-            self._logger.test("album has alot of songs and is popular", album=track.album.model_dump())
+        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:
+            self._logger.debug("album has alot of songs and is popular, Probably compilation album", album=track.album.model_dump())
             track.album.album_type = 'compilation'
+
+        if 'Soundtrack' in track.album.name:
+            track.album.album_type = 'soundtrack'
 
         # first sore by album type:
         # [1, 2, 3, 3.4]
@@ -73,7 +97,7 @@ class AlbumsLogic:
         # [0,...,100]
         compare_by_album_popularity = track.popularity
 
-        if 'Anniversary' in track.album.name or '(Deluxe Edition)' in track.album.name or 'Acoustic' in track.name:
+        if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS) or 'Acoustic' in track.name:
             compare_by_album_type -= 100
         if 'Various Artists' in [a.name for a in track.album.artists]:
             compare_by_album_type -= 100
@@ -91,49 +115,50 @@ class AlbumsLogic:
     def filter_tracks(self, track: TrackEntity, expected_track_name: str = '', expected_track_artist: str = '') -> bool:
         try:
             if not track.album or not track.album.images:
-                self._logger.test("album not exists or picture not exist")
+                # self._logger.debug("album not exists or picture not exist")
                 return False
             album_name_no_special_chars = ''.join(
                 char for char in track.album.name if char not in ['(', ')', '[', ']', ',', "'"])
-            if any((word.lower() in ['live', 'concert', 'karaoke', 'tribute']) for word in
-                   album_name_no_special_chars.split()) and \
-                    all(('live' not in word.lower()) for word in expected_track_name.split()):
-                self._logger.test("banned name in album name", album_name=track.album.name,
-                                  track_name_in_spotify=track.name, expected_track_name=expected_track_name)
+            album_include_forbidden_word = any((word.lower() in ['live', 'concert', 'karaoke', 'tribute']) for word in
+                   album_name_no_special_chars.split())
+            track_is_not_live = all(('live' != word.lower()) for word in expected_track_name.split())
+            if album_include_forbidden_word and track_is_not_live:
+                # self._logger.debug("banned name in album name", album_name=track.album.name,
+                #                    track_name_in_spotify=track.name, expected_track_name=expected_track_name)
                 return False
             actual_artists = list(set([a.name for a in track.album.artists]) - {'Various Artists'})
             if actual_artists and len(actual_artists) > 1 and all(
                     [(unidecode(expected_track_artist) not in unidecode(artist_name)
                       and unidecode(artist_name) not in unidecode(expected_track_artist))
                      for artist_name in actual_artists]):
-                self._logger.test("artist not in album artists", album_name=track.album.name,
-                                  album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
+                # self._logger.debug("artist not in album artists", album_name=track.album.name,
+                #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                 return False
             if actual_artists and len(actual_artists) == 1 and unidecode(actual_artists[0]) != unidecode(
                     expected_track_artist):
                 if 'Tribute' in actual_artists[0]:
-                    self._logger.test("Tribute in artist", album_name=track.album.name,
-                                      album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
+                    # self._logger.debug("Tribute in artist", album_name=track.album.name,
+                    #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
-                self._logger.test("artist is not equal to album artist", album_name=track.album.name,
-                                  album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
+                # self._logger.debug("artist is not equal to album artist", album_name=track.album.name,
+                #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                 if unidecode(expected_track_artist) not in unidecode(actual_artists[0]):
-                    self._logger.test("artist is not even included in album artist", album_name=track.album.name,
-                                      album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
+                    # self._logger.debug("artist is not even included in album artist", album_name=track.album.name,
+                    #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
             if 'live' in [word.lower() for word in track.name.split()] and \
                     'live' not in [word.lower() for word in expected_track_name.split()]:
-                self._logger.test("live in track name", album_name=track.album.name,
-                                  track_name_in_spotify=track.name,
-                                  expected_track_name=expected_track_name)
+                # self._logger.debug("live in track name", album_name=track.album.name,
+                #                    track_name_in_spotify=track.name,
+                #                    expected_track_name=expected_track_name)
                 return False
             if unidecode(track.name.lower()) != unidecode(expected_track_name.lower()) and unidecode(
                     expected_track_name.lower()) not in unidecode(track.name.lower()):
-                self._logger.test("track name is not expected track name", album_name=track.album.name,
-                                  track_name_in_spotify=track.name,
-                                  expected_track_name=expected_track_name)
+                # self._logger.debug("track name is not expected track name", album_name=track.album.name,
+                #                    track_name_in_spotify=track.name,
+                #                    expected_track_name=expected_track_name)
                 return False
             return True
         except Exception as e:
-            self._logger.test('filter exception', error=e)
+            self._logger.debug('filter exception', error=e)
             return False
