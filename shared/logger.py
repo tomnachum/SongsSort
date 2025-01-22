@@ -1,6 +1,6 @@
 class Logger:
-    def __init__(self, is_test: bool):
-        self.is_test = is_test
+    def __init__(self, debug_enabled: bool):
+        self.debug_enabled = debug_enabled
 
     def _print_helper(self, message, artist='', track='', **kwargs):
         to_print = message
@@ -26,8 +26,8 @@ class Logger:
     def info(self, message, **kwargs):
         print(self._print_helper(f"\nINFO: {message}", **kwargs))
 
-    def test(self, message, **kwargs):
-        if self.is_test:
+    def debug(self, message, **kwargs):
+        if self.debug_enabled:
             print(self._print_helper(f"\nTEST: {message}", **kwargs))
 
     def warning(self, message, **kwargs):

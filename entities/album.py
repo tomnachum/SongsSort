@@ -10,6 +10,7 @@ class AlbumType(str, Enum):
     ALBUM = "album"
     SINGLE = "single"
     COMPILATION = "compilation"
+    SOUNDTRACK = "soundtrack"
 
     @staticmethod
     def list():

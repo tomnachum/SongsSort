@@ -30,7 +30,7 @@ class OrganizerLogic:
         modified_files = []
         for mp3_file_path in sorted(mp3_files):
             try:
-                self._logger.test(f"\n{'#' * 200}\nStarting organize song", mp3_file_path=mp3_file_path)
+                self._logger.debug(f"\n{'#' * 200}\nStarting organize song", mp3_file_path=mp3_file_path)
                 self._mp3_service.init_tag_values(mp3_file_path=mp3_file_path)
                 self._mp3_service.delete_unused_tags(mp3_file_path=mp3_file_path)
                 artist, track = self._mp3_service.extract_artist_and_track_from_mp3(mp3_file_path=mp3_file_path)
