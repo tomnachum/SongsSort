@@ -15,3 +15,5 @@
 For debugging, the program will create in the same directory as SONGS_DIRECTORY 2 folders:
 - modified: will have all the songs that has been modified by the algorithm
 - invalid: will have all the songs that the program found as invalid 
+
+In order to edit specific files manually, use MusicBrainz Picard

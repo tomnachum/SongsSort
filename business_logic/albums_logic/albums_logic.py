@@ -6,17 +6,17 @@ from unidecode import unidecode
 from shared.logger import Logger
 from typing import Dict
 
-def print_track(track: TrackEntity)->Dict:
-    score = track.score
-    if score:
-        score = {'score': score.total}
-    return {
+def print_track(track: TrackEntity):
+    return (json.dumps({
+        'track_name': track.name,
         'album_name': track.album.name,
-        'score': track.score
-    }
+        'score': track.score.model_dump_json() if track.score else {},
+        'artwork': track.album.images[0].url
+    }, indent=4))
 
 
-def format_tracks(all_tracks: List[TrackEntity]) -> List[Dict]:
+def format_tracks(all_tracks: List[TrackEntity]):
+    # return json.dumps(list(map(lambda track: (track.dict()), all_tracks)), indent=None, separators=(',', ':'))
     return [print_track(track=track) for track in all_tracks]
 
 
@@ -81,6 +81,8 @@ class AlbumsLogic:
 
         if 'Soundtrack' in track.album.name:
             track.album.album_type = 'soundtrack'
+
+
 
         # first sore by album type:
         # [1, 2, 3, 3.4]
