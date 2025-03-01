@@ -25,6 +25,7 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
                        }
 
 BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)']
+BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
@@ -82,8 +83,6 @@ class AlbumsLogic:
         if 'Soundtrack' in track.album.name:
             track.album.album_type = 'soundtrack'
 
-
-
         # first sore by album type:
         # [1, 2, 3, 3.4]
         # [100, 200, 300, 340]
@@ -99,7 +98,9 @@ class AlbumsLogic:
         # [0,...,100]
         compare_by_album_popularity = track.popularity
 
-        if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS) or 'Acoustic' in track.name:
+        if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS):
+            compare_by_album_type -= 100
+        if any(banned_keyword in track.name for banned_keyword in BANNED_TRACK_KEYWORDS):
             compare_by_album_type -= 100
         if 'Various Artists' in [a.name for a in track.album.artists]:
             compare_by_album_type -= 100
