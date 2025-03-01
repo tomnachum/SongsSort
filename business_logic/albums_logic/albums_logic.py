@@ -126,7 +126,9 @@ class AlbumsLogic:
             album_include_forbidden_word = any((word.lower() in ['live', 'concert', 'karaoke', 'tribute']) for word in
                    album_name_no_special_chars.split())
             track_is_not_live = all(('live' != word.lower()) for word in expected_track_name.split())
-            if album_include_forbidden_word and track_is_not_live:
+            whitelist = ['lets live']
+            album_not_in_whitelist = all(phrase not in album_name_no_special_chars.lower() for phrase in whitelist)
+            if album_include_forbidden_word and track_is_not_live and album_not_in_whitelist:
                 # self._logger.debug("banned name in album name", album_name=track.album.name,
                 #                    track_name_in_spotify=track.name, expected_track_name=expected_track_name)
                 return False
