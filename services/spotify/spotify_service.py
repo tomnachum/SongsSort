@@ -10,7 +10,7 @@ from entities.track import TrackEntity
 from services.interfaces.fetch_tracks_info_service import FetchTracksInfoService
 from shared.constants import SPOTIFY_API_URL, SPOTIFY_TOKEN_URL
 from shared.logger import Logger
-
+from typing import Dict
 
 def _parse_str_for_request(input_string):
     str_no_apostrophe = input_string.replace("'", "")
@@ -57,7 +57,7 @@ class SpotifyService(FetchTracksInfoService):
             raise ValueError
         return [track_dto_to_entity(t) for t in all_tracks]
 
-    def request_spotify_with_retry(self, artist, params, track, url):
+    def request_spotify_with_retry(self, artist: str, params: Dict, track: str, url: str) -> SpotifyResponse:
         retries = 0
         while retries <= self.max_retries:
             response = requests.get(url, headers={'Authorization': f'Bearer {self._token}'}, params=params)

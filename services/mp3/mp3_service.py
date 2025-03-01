@@ -57,8 +57,14 @@ class MP3Service:
             artist = hyphen_split_arr[0]
             track = ' - '.join(hyphen_split_arr[1:])
 
-            if len(artist.strip()) != len(artist) or len(track.strip()) != len(track):
-                self._logger.error("String should not have spaces at the beginning or end.", mp3_file=mp3_file_path,
+            if len(artist.strip()) != len(artist):
+                self._logger.error("String should not have spaces at the beginning.", mp3_file=mp3_file_path,
+                                   file_name=file_name,
+                                   file_name_no_extension=file_name_no_extension, artist=artist, track=track)
+                raise ValueError()
+
+            if len(track.strip()) != len(track):
+                self._logger.error("String should not have spaces at the end.", mp3_file=mp3_file_path,
                                    file_name=file_name,
                                    file_name_no_extension=file_name_no_extension, artist=artist, track=track)
                 raise ValueError()

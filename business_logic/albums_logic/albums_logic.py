@@ -104,8 +104,10 @@ class AlbumsLogic:
         if 'Various Artists' in [a.name for a in track.album.artists]:
             compare_by_album_type -= 100
             compare_by_album_popularity = 0
+        if 'Deluxe' in track.album.name:
+            compare_by_album_type -= 100
 
-        score = 10 * compare_by_album_type + 15 * compare_by_release_year + compare_by_album_popularity
+        score = 10 * compare_by_album_type + 20 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
                             release_year=compare_by_release_year,
                             popularity=compare_by_album_popularity,
