@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ValidationError
 
 
 class SpotifyAlbumType(Enum):
@@ -74,6 +74,17 @@ class Tracks(BaseModel):
     previous: Optional[str]
     total: int
     items: List[TrackObject]
+
+    @field_validator("items", mode="before")
+    @classmethod
+    def filter_invalid_items(cls, value):
+        valid_items = []
+        for item in value:
+            try:
+                valid_items.append(TrackObject(**item))
+            except ValidationError:
+                pass  # Ignore invalid items
+        return valid_items
 
 
 class SpotifyResponse(BaseModel):
