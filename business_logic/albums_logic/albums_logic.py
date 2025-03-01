@@ -25,7 +25,7 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
                        }
 
 BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)']
-BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic']
+BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
