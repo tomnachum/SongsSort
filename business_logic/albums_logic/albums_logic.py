@@ -51,6 +51,8 @@ class AlbumsLogic:
 
         unique_tracks = sorted(list(album_name_tracks_mapping.values()), key=lambda track: track.score.total, reverse=True)
 
+        self._logger.debug("\n"*30)
+
         self._logger.debug("All tracks after filtering and sorting:", tracks = format_tracks(unique_tracks),
                            total_tracks=len(unique_tracks))
 
@@ -80,7 +82,7 @@ class AlbumsLogic:
             self._logger.debug("album has alot of songs and is popular, Probably compilation album", album=track.album.model_dump())
             track.album.album_type = 'compilation'
 
-        if 'Soundtrack' in track.album.name:
+        if 'Soundtrack' in track.album.name or 'Motion Picture' in track.album.name:
             track.album.album_type = 'soundtrack'
 
         # first sore by album type:
@@ -107,6 +109,10 @@ class AlbumsLogic:
             compare_by_album_popularity = 0
         if 'Deluxe' in track.album.name:
             compare_by_album_type -= 100
+        if 'Remaster' in track.album.name or 'Remaster' in track.name or 'Remix' in track.name:
+            compare_by_album_type -= 200
+        if 'Remaster' in track.name:
+            compare_by_album_popularity -=20
 
         score = 10 * compare_by_album_type + 20 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
@@ -153,8 +159,10 @@ class AlbumsLogic:
                     # self._logger.debug("artist is not even included in album artist", album_name=track.album.name,
                     #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
-            if 'live' in [word.lower() for word in track.name.split()] and \
-                    'live' not in [word.lower() for word in expected_track_name.split()]:
+            track_words_lower = [word.lower() for word in track.name.split()]
+            expected_track_words_lower = [word.lower() for word in expected_track_name.split()]
+            if not any(word in track_words_lower for word in expected_track_words_lower): return False
+            if 'live' in track_words_lower and 'live' not in expected_track_words_lower:
                 # self._logger.debug("live in track name", album_name=track.album.name,
                 #                    track_name_in_spotify=track.name,
                 #                    expected_track_name=expected_track_name)
