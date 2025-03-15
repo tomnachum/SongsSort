@@ -162,7 +162,7 @@ class AlbumsLogic:
             track_words_lower = [word.lower() for word in track.name.split()]
             expected_track_words_lower = [word.lower() for word in expected_track_name.split()]
             if not any(word in track_words_lower for word in expected_track_words_lower): return False
-            if 'live' in track_words_lower and 'live' not in expected_track_words_lower:
+            if any('live' in word for word in track_words_lower) and 'live' not in expected_track_words_lower:
                 # self._logger.debug("live in track name", album_name=track.album.name,
                 #                    track_name_in_spotify=track.name,
                 #                    expected_track_name=expected_track_name)
