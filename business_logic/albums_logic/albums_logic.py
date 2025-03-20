@@ -10,6 +10,8 @@ def print_track(track: TrackEntity):
     return (json.dumps({
         'track_name': track.name,
         'album_name': track.album.name,
+        'album_type': track.album.album_type,
+        'artist': track.album.artists[0].name,
         'score': track.score.model_dump_json() if track.score else {},
         'artwork': track.album.images[0].url
     }, indent=4))
@@ -24,8 +26,8 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
                        AlbumType.SINGLE.value: 2, AlbumType.COMPILATION.value: 1, AlbumType.SOUNDTRACK.value: 3.2
                        }
 
-BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)']
-BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono']
+BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)', 'The String Quartets', 'Philharmonic Orchestra', 'Collection', 'Original', 'Edition']
+BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
@@ -45,6 +47,8 @@ class AlbumsLogic:
         album_name_tracks_mapping: Dict[str, TrackEntity] = {}
         for track in sorted_tracks:
             if track.album.name in album_name_tracks_mapping:
+                if track.score.total > album_name_tracks_mapping[track.album.name].score.total:
+                    album_name_tracks_mapping[track.album.name] = track
                 album_name_tracks_mapping[track.album.name].score.total +=1
             else:
                 album_name_tracks_mapping[track.album.name] = track
@@ -78,7 +82,7 @@ class AlbumsLogic:
 
     # the best track gets the highest score
     def tracks_comparator(self, track: TrackEntity) -> float:
-        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20:
+        if track.album.album_type == 'album' and track.album.total_tracks > 30 and track.popularity > 20 and int(track.album.release_date)>1980:
             self._logger.debug("album has alot of songs and is popular, Probably compilation album", album=track.album.model_dump())
             track.album.album_type = 'compilation'
 
@@ -110,11 +114,11 @@ class AlbumsLogic:
         if 'Deluxe' in track.album.name:
             compare_by_album_type -= 100
         if 'Remaster' in track.album.name or 'Remaster' in track.name or 'Remix' in track.name:
-            compare_by_album_type -= 200
+            compare_by_album_type -= 100
         if 'Remaster' in track.name:
             compare_by_album_popularity -=20
 
-        score = 10 * compare_by_album_type + 20 * compare_by_release_year + compare_by_album_popularity
+        score = 10 * compare_by_album_type + 30 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
                             release_year=compare_by_release_year,
                             popularity=compare_by_album_popularity,
@@ -161,6 +165,7 @@ class AlbumsLogic:
                     return False
             track_words_lower = [word.lower() for word in track.name.split()]
             expected_track_words_lower = [word.lower() for word in expected_track_name.split()]
+            if len(track_words_lower) == 1 and set(track_words_lower) != set(expected_track_words_lower): return False
             if not any(word in track_words_lower for word in expected_track_words_lower): return False
             if any('live' in word for word in track_words_lower) and 'live' not in expected_track_words_lower:
                 # self._logger.debug("live in track name", album_name=track.album.name,
@@ -173,6 +178,8 @@ class AlbumsLogic:
                 #                    track_name_in_spotify=track.name,
                 #                    expected_track_name=expected_track_name)
                 return False
+            if expected_track_artist != track.album.artists[0].name and track.album.artists[0].name != 'Various Artists': return False
+            if len(expected_track_words_lower) == 1 and len(track_words_lower) > 3: return False
             return True
         except Exception as e:
             self._logger.debug('filter exception', error=e)
