@@ -26,8 +26,9 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
                        AlbumType.SINGLE.value: 2, AlbumType.COMPILATION.value: 1, AlbumType.SOUNDTRACK.value: 3.2
                        }
 
-BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)', 'The String Quartets', 'Philharmonic Orchestra', 'Collection', 'Original', 'Edition']
-BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert']
+BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)', 'The String Quartets', 'Philharmonic Orchestra',
+                         'Collection', 'Original', 'Edition']
+BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
@@ -151,15 +152,15 @@ class AlbumsLogic:
                 # self._logger.debug("artist not in album artists", album_name=track.album.name,
                 #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                 return False
-            if actual_artists and len(actual_artists) == 1 and unidecode(actual_artists[0]) != unidecode(
-                    expected_track_artist):
+            if actual_artists and len(actual_artists) == 1 and unidecode(actual_artists[0]).lower() != unidecode(
+                    expected_track_artist).lower():
                 if 'Tribute' in actual_artists[0]:
                     # self._logger.debug("Tribute in artist", album_name=track.album.name,
                     #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
                 # self._logger.debug("artist is not equal to album artist", album_name=track.album.name,
                 #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
-                if unidecode(expected_track_artist) not in unidecode(actual_artists[0]):
+                if unidecode(expected_track_artist).lower() not in unidecode(actual_artists[0]).lower():
                     # self._logger.debug("artist is not even included in album artist", album_name=track.album.name,
                     #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
@@ -169,7 +170,7 @@ class AlbumsLogic:
             if not any(word in track_words_lower for word in expected_track_words_lower): return False
             if any('live' in word for word in track_words_lower) and 'live' not in expected_track_words_lower:
                 # self._logger.debug("live in track name", album_name=track.album.name,
-                #                    track_name_in_spotify=track.name,
+                #                    track_name_in_spotify=track.nverified_albumame,
                 #                    expected_track_name=expected_track_name)
                 return False
             if unidecode(track.name.lower()) != unidecode(expected_track_name.lower()) and unidecode(
@@ -178,7 +179,7 @@ class AlbumsLogic:
                 #                    track_name_in_spotify=track.name,
                 #                    expected_track_name=expected_track_name)
                 return False
-            if expected_track_artist != track.album.artists[0].name and track.album.artists[0].name != 'Various Artists': return False
+            if expected_track_artist.lower() != track.album.artists[0].name.lower() and track.album.artists[0].name != 'Various Artists': return False
             if len(expected_track_words_lower) == 1 and len(track_words_lower) > 3: return False
             return True
         except Exception as e:
