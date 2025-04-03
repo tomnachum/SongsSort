@@ -35,6 +35,8 @@ BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Editi
                          'Super Deluxe', 'Remembering Dolores', 'Slip of the Tongue', "I'm Looking Out the Window"]
 BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track', 'Piano & Vocal',
                          'Swing Version', 'Single Version', 'Radio Session', 'Previously Unreleased', 'BBC Session', 'A-side', ' - Live']
+EXTRA_BANNED_ALBUM_KEYWORDS = ['Coneheads', 'The Complete Sessions', '(They Long To Be) Close To You', 'Big Time']
+
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
@@ -113,7 +115,7 @@ class AlbumsLogic:
 
         if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS):
             compare_by_album_type -= 100
-        if 'The Complete Sessions' in track.album.name or '(They Long To Be) Close To You' in track.album.name or 'Acoustic Version' in  track.name:
+        if any(banned_keyword in track.album.name for banned_keyword in EXTRA_BANNED_ALBUM_KEYWORDS) or 'Acoustic Version' in  track.name:
             compare_by_album_type -= 2000
         if any(banned_keyword in track.name for banned_keyword in BANNED_TRACK_KEYWORDS):
             compare_by_album_type -= 100
@@ -126,8 +128,6 @@ class AlbumsLogic:
             compare_by_album_type -= 100
         if 'Remaster' in track.name:
             compare_by_album_popularity -=20
-        if 'Big Time' in track.album.name:
-            compare_by_album_type -=2000
 
         score = 10 * compare_by_album_type + 30 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
