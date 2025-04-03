@@ -1,7 +1,8 @@
 from mutagen.id3 import TIT2, TPE1, TALB, ID3, APIC, TRCK, TDRC, TPOS
 import requests
 from shared.constants import TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME, PRESERVED_TAGS, DEFAULT_TAG_VALUE, \
-    TRACK_NUMBER_TAG_NAME, TRACK_YEAR_TAG_NAME, DISC_NUM_TAG_NAME
+    TRACK_NUMBER_TAG_NAME, TRACK_YEAR_TAG_NAME, DISC_NUM_TAG_NAME, TAGS_MEANING, TAGS_DEFAULT_VALUES, \
+    TAGS_TO_BE_INITIALIZE
 import re
 from typing import Tuple
 from shared.logger import Logger
@@ -37,10 +38,23 @@ class MP3Service:
                 del audio[tag]
         audio.save()
 
-    def init_tag_values(self, mp3_file_path: str) -> None:
-        for tag_name in [TITLE_TAG_NAME, ARTIST_TAG_NAME, ALBUM_NAME_TAG_NAME]:
-            if not self.get_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name):
-                self.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name, tag_value=DEFAULT_TAG_VALUE)
+    def init_tag_values(self, mp3_file_path: str, logger: Logger = None) -> None:
+        for tag_name in TAGS_TO_BE_INITIALIZE:
+            tag_value = self.get_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name)
+
+            new_val = None
+            if not tag_value:
+                new_val = TAGS_DEFAULT_VALUES.get(tag_name)
+            elif tag_name == DISC_NUM_TAG_NAME and len(tag_value) > 2:
+                new_val = tag_value.split('/')[0]
+            elif tag_name == DISC_NUM_TAG_NAME and int(tag_value) > 3:
+                new_val = '1'
+            elif tag_name == TRACK_NUMBER_TAG_NAME and len(tag_value) == 1:
+                new_val = f'{tag_value}/0'
+
+            if new_val:
+                self.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name, tag_value=new_val)
+                if logger: logger.info('set new tag for song', mp3_file_path=mp3_file_path, tag=TAGS_MEANING.get(tag_name), old_val=tag_value, new_value=new_val)
 
     def delete_all_tags(self, mp3_file_path: str) -> None:
         audio = ID3(mp3_file_path)
