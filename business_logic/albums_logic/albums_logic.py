@@ -7,14 +7,18 @@ from shared.logger import Logger
 from typing import Dict
 
 def print_track(track: TrackEntity):
-    return (json.dumps({
-        'track_name': track.name,
-        'album_name': track.album.name,
-        'album_type': track.album.album_type,
-        'artist': track.album.artists[0].name,
-        'score': track.score.model_dump_json() if track.score else {},
-        'artwork': track.album.images[0].url
-    }, indent=4))
+    try:
+        return (json.dumps({
+            'track_name': track.name,
+            'album_name': track.album.name,
+            'album_type': track.album.album_type,
+            'artist': track.album.artists[0].name,
+            'release_year': track.album.release_date,
+            'score': track.score.model_dump_json() if track.score else {},
+            'artwork': track.album.images[0].url
+        }, indent=4))
+    except Exception:
+        return ''
 
 
 def format_tracks(all_tracks: List[TrackEntity]):
@@ -27,8 +31,10 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
                        }
 
 BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)', 'The String Quartets', 'Philharmonic Orchestra',
-                         'Collection', 'Original', 'Edition']
-BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track']
+                         'Collection', 'Original', 'Edition', 'Super Deluxe', 'Zombie', 'Ode To My Family',
+                         'Super Deluxe', 'Remembering Dolores', 'Slip of the Tongue', "I'm Looking Out the Window"]
+BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track', 'Piano & Vocal',
+                         'Swing Version', 'Single Version', 'Radio Session', 'Previously Unreleased', 'BBC Session', 'A-side', ' - Live']
 
 class AlbumsLogic:
     def __init__(self, logger: Logger):
@@ -107,6 +113,8 @@ class AlbumsLogic:
 
         if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS):
             compare_by_album_type -= 100
+        if 'The Complete Sessions' in track.album.name or '(They Long To Be) Close To You' in track.album.name or 'Acoustic Version' in  track.name:
+            compare_by_album_type -= 2000
         if any(banned_keyword in track.name for banned_keyword in BANNED_TRACK_KEYWORDS):
             compare_by_album_type -= 100
         if 'Various Artists' in [a.name for a in track.album.artists]:
@@ -118,6 +126,8 @@ class AlbumsLogic:
             compare_by_album_type -= 100
         if 'Remaster' in track.name:
             compare_by_album_popularity -=20
+        if 'Big Time' in track.album.name:
+            compare_by_album_type -=2000
 
         score = 10 * compare_by_album_type + 30 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
@@ -152,8 +162,8 @@ class AlbumsLogic:
                 # self._logger.debug("artist not in album artists", album_name=track.album.name,
                 #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                 return False
-            if actual_artists and len(actual_artists) == 1 and unidecode(actual_artists[0]).lower() != unidecode(
-                    expected_track_artist).lower():
+            if actual_artists and len(actual_artists) == 1 and unidecode(
+                    expected_track_artist).lower() not in unidecode(actual_artists[0]).lower():
                 if 'Tribute' in actual_artists[0]:
                     # self._logger.debug("Tribute in artist", album_name=track.album.name,
                     #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
@@ -164,7 +174,7 @@ class AlbumsLogic:
                     # self._logger.debug("artist is not even included in album artist", album_name=track.album.name,
                     #                    album_artists=actual_artists, expected_track_artist=f'{expected_track_artist}.')
                     return False
-            track_words_lower = [word.lower() for word in track.name.split()]
+            track_words_lower = [word.lower() for word in track.name.split('-')[0].split()]
             expected_track_words_lower = [word.lower() for word in expected_track_name.split()]
             if len(track_words_lower) == 1 and set(track_words_lower) != set(expected_track_words_lower): return False
             if not any(word in track_words_lower for word in expected_track_words_lower): return False
@@ -179,8 +189,9 @@ class AlbumsLogic:
                 #                    track_name_in_spotify=track.name,
                 #                    expected_track_name=expected_track_name)
                 return False
-            if expected_track_artist.lower() != track.album.artists[0].name.lower() and track.album.artists[0].name != 'Various Artists': return False
+            if expected_track_artist.lower() not in track.album.artists[0].name.lower() and track.album.artists[0].name != 'Various Artists': return False
             if len(expected_track_words_lower) == 1 and len(track_words_lower) > 3: return False
+            if expected_track_words_lower[0] != track_words_lower[0]: return False
             return True
         except Exception as e:
             self._logger.debug('filter exception', error=e)
