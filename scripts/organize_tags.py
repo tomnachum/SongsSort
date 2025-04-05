@@ -9,7 +9,7 @@ def organize_tags():
     env_vars: EnvVars = get_env_vars()
     logger = Logger(debug_enabled=env_vars.DEBUG)
 
-    mp3_files: set[str] = get_mp3_files(env_vars, logger)
+    mp3_files: set[str] = get_mp3_files(songs_directory=f'../{env_vars.SONGS_DIRECTORY}', logger=logger)
 
     mp3_service: MP3Service = MP3Service(logger=logger)
 

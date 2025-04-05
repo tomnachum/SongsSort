@@ -14,7 +14,7 @@ def main():
     env_vars: EnvVars = get_env_vars()
     logger = Logger(debug_enabled=env_vars.DEBUG)
 
-    mp3_files = get_mp3_files(env_vars, logger)
+    mp3_files = get_mp3_files(songs_directory=env_vars.SONGS_DIRECTORY, logger=logger)
 
     mp3_files_no_live = list(filter(lambda f: '(Live)' not in f, mp3_files))
 
