@@ -32,11 +32,13 @@ ALBUM_TYPE_TO_SCORE = {AlbumType.VERIFIED_ALBUM: 3.4, AlbumType.ALBUM.value: 3,
 
 BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Edition)', 'The String Quartets', 'Philharmonic Orchestra',
                          'Collection', 'Original', 'Edition', 'Super Deluxe', 'Zombie', 'Ode To My Family',
-                         'Super Deluxe', 'Remembering Dolores', 'Slip of the Tongue', "I'm Looking Out the Window"]
+                         'Super Deluxe', 'Remembering Dolores', 'Slip of the Tongue', "I'm Looking Out the Window", 'Hits From The Sixties', 'Mix', 'Vintage']
 BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track', 'Piano & Vocal',
-                         'Swing Version', 'Single Version', 'Radio Session', 'Previously Unreleased', 'BBC Session', 'A-side', ' - Live']
+                         'Swing Version', 'Single Version', 'Radio Session', 'Previously Unreleased', 'BBC Session', 'A-side', ' - Live', 'Mix']
 EXTRA_BANNED_ALBUM_KEYWORDS = ['Coneheads', 'The Complete Sessions', '(They Long To Be) Close To You', 'Big Time', '90s Movie Soundtracks',
-                               'Beatles Songs Unplugged', 'Ncis Tv Soundtrack', 'Christophe Etc. (Vol. 2)', 'Night People', 'Living with the Past', '50 for 50']
+                               'Beatles Songs Unplugged', 'Ncis Tv Soundtrack', 'Christophe Etc. (Vol. 2)', 'Night People', 'Living with the Past',
+                               '50 for 50', 'Shape Of Things To Come', 'In the Summertime', 'Baby Jump', 'Recital At The Festival' ,"Never Mind I've Still",
+                               'Mungo Jerry', 'My Mate Mungo', 'Cocktail', 'The Anthology', 'Comeblack']
 EXTRA_BANNED_TRACK_KEYWORDS = ['Acoustic Version', 'Steven Wilson', 'Living in the Past - 2001 Remaster', '2011 Remaster']
 
 
