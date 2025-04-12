@@ -35,7 +35,9 @@ BANNED_ALBUM_KEYWORDS = ['(Super Deluxe Edition)', 'Anniversary', '(Deluxe Editi
                          'Super Deluxe', 'Remembering Dolores', 'Slip of the Tongue', "I'm Looking Out the Window"]
 BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 'Bonus Track', 'Piano & Vocal',
                          'Swing Version', 'Single Version', 'Radio Session', 'Previously Unreleased', 'BBC Session', 'A-side', ' - Live']
-EXTRA_BANNED_ALBUM_KEYWORDS = ['Coneheads', 'The Complete Sessions', '(They Long To Be) Close To You', 'Big Time']
+EXTRA_BANNED_ALBUM_KEYWORDS = ['Coneheads', 'The Complete Sessions', '(They Long To Be) Close To You', 'Big Time', '90s Movie Soundtracks',
+                               'Beatles Songs Unplugged', 'Ncis Tv Soundtrack', 'Christophe Etc. (Vol. 2)', 'Night People', 'Living with the Past', '50 for 50']
+EXTRA_BANNED_TRACK_KEYWORDS = ['Acoustic Version', 'Steven Wilson', 'Living in the Past - 2001 Remaster', '2011 Remaster']
 
 
 class AlbumsLogic:
@@ -115,7 +117,9 @@ class AlbumsLogic:
 
         if any(banned_keyword in track.album.name for banned_keyword in BANNED_ALBUM_KEYWORDS):
             compare_by_album_type -= 100
-        if any(banned_keyword in track.album.name for banned_keyword in EXTRA_BANNED_ALBUM_KEYWORDS) or 'Acoustic Version' in  track.name:
+        if any(banned_keyword in track.album.name for banned_keyword in EXTRA_BANNED_ALBUM_KEYWORDS):
+            compare_by_album_type -= 2000
+        if any(banned_keyword in track.name for banned_keyword in EXTRA_BANNED_TRACK_KEYWORDS):
             compare_by_album_type -= 2000
         if any(banned_keyword in track.name for banned_keyword in BANNED_TRACK_KEYWORDS):
             compare_by_album_type -= 100
@@ -127,7 +131,9 @@ class AlbumsLogic:
         if 'Remaster' in track.album.name or 'Remaster' in track.name or 'Remix' in track.name:
             compare_by_album_type -= 100
         if 'Remaster' in track.name:
-            compare_by_album_popularity -=20
+            compare_by_album_type -= 100
+        if compare_by_album_popularity < 0:
+            compare_by_album_type -= 1000
 
         score = 10 * compare_by_album_type + 30 * compare_by_release_year + compare_by_album_popularity
         track.score = Score(album_type=compare_by_album_type,
@@ -143,6 +149,7 @@ class AlbumsLogic:
             if not track.album or not track.album.images:
                 # self._logger.debug("album not exists or picture not exist")
                 return False
+            if track.name == 'Bour\u00e9e': return True
             album_name_no_special_chars = ''.join(
                 char for char in track.album.name if char not in ['(', ')', '[', ']', ',', "'"])
             album_include_forbidden_word = any((word.lower() in ['live', 'concert', 'karaoke', 'tribute']) for word in
