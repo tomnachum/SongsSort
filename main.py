@@ -24,9 +24,9 @@ def main():
     if len(modified_files) > 0:
         logger.warning('Total modified files', total=len(modified_files))
         logger.warning('Modified files', modified_files=modified_files)
-        m_files = list(map(lambda d: d['file'], modified_files))
-        modified_folder_path = create_folder_in_directory(directory=env_vars.SONGS_DIRECTORY,folder_to_create='modified')
-        copy_files_to_folder(destination_folder_path=modified_folder_path, files=m_files)
+        # m_files = list(map(lambda d: d['file'], modified_files))
+        # modified_folder_path = create_folder_in_directory(directory=env_vars.SONGS_DIRECTORY,folder_to_create='modified')
+        # copy_files_to_folder(destination_folder_path=modified_folder_path, files=m_files)
     else:
         logger.warning('No files were modified')
 
@@ -38,8 +38,8 @@ def main():
     if len(invalid_files) > 0:
         logger.error(f'Total invalid files = {len(invalid_files)} / {studio_files}')
         logger.error(f'Invalid files', invalid_files=invalid_files)
-        invalid_folder_path = create_folder_in_directory(directory=env_vars.SONGS_DIRECTORY,folder_to_create='invalid')
-        copy_files_to_folder(destination_folder_path=invalid_folder_path, files=invalid_files)
+        # invalid_folder_path = create_folder_in_directory(directory=env_vars.SONGS_DIRECTORY,folder_to_create='invalid')
+        # copy_files_to_folder(destination_folder_path=invalid_folder_path, files=invalid_files)
         logger.error(f'Total invalid percentage = {(len(invalid_files) / (studio_files)) * 100}%')
     elif total_files > 0:
         logger.success('All tracks edited successfully!!')

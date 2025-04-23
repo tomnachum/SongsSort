@@ -15,7 +15,8 @@ def print_track(track: TrackEntity):
             'artist': track.album.artists[0].name,
             'release_year': track.album.release_date,
             'score': track.score.model_dump_json() if track.score else {},
-            'artwork': track.album.images[0].url
+            'artwork': track.album.images[0].url,
+            'track number': track.track_number
         }, indent=4))
     except Exception:
         return ''
@@ -151,6 +152,8 @@ class AlbumsLogic:
             if not track.album or not track.album.images:
                 # self._logger.debug("album not exists or picture not exist")
                 return False
+            if '?' not in expected_track_name and '?' in track.name:
+                return False
             if track.name == 'Bour\u00e9e': return True
             album_name_no_special_chars = ''.join(
                 char for char in track.album.name if char not in ['(', ')', '[', ']', ',', "'"])
@@ -187,7 +190,7 @@ class AlbumsLogic:
             expected_track_words_lower = [word.lower() for word in expected_track_name.split()]
             if len(track_words_lower) == 1 and set(track_words_lower) != set(expected_track_words_lower): return False
             if not any(word in track_words_lower for word in expected_track_words_lower): return False
-            if any('live' in word for word in track_words_lower) and 'live' not in expected_track_words_lower:
+            if any('live' == word for word in track_words_lower) and 'live' not in expected_track_words_lower:
                 # self._logger.debug("live in track name", album_name=track.album.name,
                 #                    track_name_in_spotify=track.nverified_albumame,
                 #                    expected_track_name=expected_track_name)
