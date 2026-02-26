@@ -1,5 +1,7 @@
 from typing import Optional
-from pydantic import BaseModel
+from uuid import uuid4
+
+from pydantic import BaseModel, Field
 from entities.album import AlbumEntity
 
 class Score(BaseModel):
@@ -9,6 +11,7 @@ class Score(BaseModel):
     total: float
 
 class TrackEntity(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
     album: Optional[AlbumEntity]
     name: str
     popularity: Optional[int]

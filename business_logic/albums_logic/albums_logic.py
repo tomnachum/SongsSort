@@ -9,6 +9,7 @@ from typing import Dict
 def print_track(track: TrackEntity):
     try:
         return (json.dumps({
+            'id': track.id,
             'track_name': track.name,
             'album_name': track.album.name,
             'album_type': track.album.album_type,
@@ -39,8 +40,8 @@ BANNED_TRACK_KEYWORDS = ['TV', 'Acoustic', 'Stereo', 'Mono', 'Demo', 'Concert', 
 EXTRA_BANNED_ALBUM_KEYWORDS = ['Coneheads', 'The Complete Sessions', '(They Long To Be) Close To You', 'Big Time', '90s Movie Soundtracks',
                                'Beatles Songs Unplugged', 'Ncis Tv Soundtrack', 'Christophe Etc. (Vol. 2)', 'Night People', 'Living with the Past',
                                '50 for 50', 'Shape Of Things To Come', 'In the Summertime', 'Baby Jump', 'Recital At The Festival' ,"Never Mind I've Still",
-                               'Mungo Jerry', 'My Mate Mungo', 'Cocktail', 'The Anthology', 'Comeblack']
-EXTRA_BANNED_TRACK_KEYWORDS = ['Acoustic Version', 'Steven Wilson', 'Living in the Past - 2001 Remaster', '2011 Remaster']
+                               'Mungo Jerry', 'My Mate Mungo', 'Cocktail', 'The Anthology', 'Comeblack', 'Motion Picture Soundtrack', 'Discover More']
+EXTRA_BANNED_TRACK_KEYWORDS = ['Acoustic Version', 'Steven Wilson', 'Living in the Past - 2001 Remaster', '2011 Remaster', 'Live at']
 
 
 class AlbumsLogic:
@@ -63,7 +64,7 @@ class AlbumsLogic:
             if track.album.name in album_name_tracks_mapping:
                 if track.score.total > album_name_tracks_mapping[track.album.name].score.total:
                     album_name_tracks_mapping[track.album.name] = track
-                album_name_tracks_mapping[track.album.name].score.total +=1
+                album_name_tracks_mapping[track.album.name].score.total += 1
             else:
                 album_name_tracks_mapping[track.album.name] = track
 
