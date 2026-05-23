@@ -41,6 +41,7 @@ class MP3Service:
     def init_tag_values(self, mp3_file_path: str, logger: Logger = None) -> None:
         for tag_name in TAGS_TO_BE_INITIALIZE:
             tag_value = self.get_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name)
+            artist, track = self.extract_artist_and_track_from_mp3(mp3_file_path=mp3_file_path)
 
             new_val = None
             if not tag_value:
@@ -51,6 +52,10 @@ class MP3Service:
                 new_val = '1'
             elif tag_name == TRACK_NUMBER_TAG_NAME and len(tag_value) == 1:
                 new_val = f'{tag_value}/0'
+            elif tag_name == TITLE_TAG_NAME and tag_value == 'None':
+                new_val = track
+            elif tag_name == ARTIST_TAG_NAME and tag_value == 'None':
+                new_val = artist
 
             if new_val:
                 self.set_mp3_tag_value(mp3_file_path=mp3_file_path, tag_name=tag_name, tag_value=new_val)
