@@ -2,27 +2,19 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, field_validator, ValidationError
 
-
-class SpotifyAlbumType(Enum):
+class SpotifyAlbumType(str, Enum):  # Inheriting from str makes validation cleaner
     Album = 'album'
     Single = 'single'
     Compilation = 'compilation'
 
-    @staticmethod
-    def list():
-        return list(map(lambda c: c.value, SpotifyAlbumType))
-
-
 class SimplifiedArtistObject(BaseModel):
-    name: Optional[str]
-
+    name: Optional[str] = None
 
 class ImageObject(BaseModel):
     url: str
 
-
 class Album(BaseModel):
-    album_type: str
+    album_type: SpotifyAlbumType
     total_tracks: int
     href: str
     images: List[ImageObject]
@@ -30,34 +22,26 @@ class Album(BaseModel):
     release_date: str
     artists: List[SimplifiedArtistObject]
 
-    @field_validator('album_type')
-    def validate_album_type(cls, v):
-        if v not in SpotifyAlbumType.list():
-            raise ValueError(f'album type not supported album_type={v}')
-        return v
-
     @field_validator('release_date')
     def validate_release_date(cls, v):
-        v = v.split('-')[0]
-        if not 1900 <= int(v) < 2030:
+        year = v.split('-')[0]
+        if not year.isdigit() or not (1900 <= int(year) < 2030):
             raise ValueError(f'release date not supported release_date={v}')
-        return v
-
+        return year
 
 class ArtistObject(BaseModel):
-    name: Optional[str]
-
+    name: Optional[str] = None
 
 class TrackObject(BaseModel):
-    album: Optional[Album]
-    artists: Optional[List[ArtistObject]]
-    duration_ms: Optional[int]
-    href: Optional[str]
-    name: Optional[str]
-    popularity: Optional[int]
-    preview_url: Optional[str]
-    track_number: Optional[int]
-    disc_number: Optional[int]
+    album: Optional[Album] = None
+    artists: Optional[List[ArtistObject]] = None
+    duration_ms: Optional[int] = None
+    href: Optional[str] = None
+    name: Optional[str] = None
+    popularity: Optional[int] = 0
+    preview_url: Optional[str] = None
+    track_number: Optional[int] = None
+    disc_number: Optional[int] = None
 
     @field_validator('popularity')
     def validate_popularity(cls, v):
@@ -65,13 +49,12 @@ class TrackObject(BaseModel):
             raise ValueError(f'popularity not supported popularity={v}')
         return v
 
-
 class Tracks(BaseModel):
     href: str
     limit: int
-    next: Optional[str]
+    next: Optional[str] = None
     offset: int
-    previous: Optional[str]
+    previous: Optional[str] = None
     total: int
     items: List[TrackObject]
 
@@ -82,10 +65,10 @@ class Tracks(BaseModel):
         for item in value:
             try:
                 valid_items.append(TrackObject(**item))
-            except ValidationError:
-                pass  # Ignore invalid items
+            except ValidationError as e:
+                print(e)
+                pass
         return valid_items
-
 
 class SpotifyResponse(BaseModel):
     tracks: Tracks
